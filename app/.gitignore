@@ -1,1 +1,1 @@
-venv/
+git rm -r --cached .venv/
