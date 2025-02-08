@@ -4,12 +4,9 @@ from app.models.user import UserRequestModel , UserLoginModel
 from app.utils.generate_username import generate_available_username
 
 from app.database.db import user_collection
-from app.utils.authentication import (
-                        create_access_token , create_refresh_token ,
-                        decode_jwt , get_hashed_password, verify_password 
-                                    )
 
-
+from app.utils.jwt_handler import create_access_token , create_refresh_token 
+from app.utils.hashing import get_hashed_password, verify_password
 
 
 auth_routes = APIRouter(
@@ -80,3 +77,6 @@ async def user_login(user_credential:UserLoginModel):
         "access_token":access_token,
         "refresh_token":refresh_token
         }
+
+
+

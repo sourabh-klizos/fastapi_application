@@ -8,6 +8,6 @@ app.include_router(auth_routes)
 
 
 
-@app.get('/helth')
+@app.get('/health')
 def helth_check() -> dict:
     return {"status" : "I am healthy"}
