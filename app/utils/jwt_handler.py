@@ -71,7 +71,7 @@ async def decode_jwt(access_token: str) -> dict:
 
         decoded_token = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
 
-        return decoded_token['user_id']
+        return decoded_token
 
     except Exception as  e:
         print(f"Error decoding token: {e}")

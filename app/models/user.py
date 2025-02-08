@@ -44,3 +44,9 @@ class UserLoginModel(BaseModel):
 
 
 
+
+
+
+class RefreshTokenReqModel(BaseModel):
+    refresh_token: str
+    

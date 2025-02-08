@@ -1,9 +1,10 @@
 from fastapi import   APIRouter , HTTPException , status, Response
 
-from app.models.user import UserRequestModel , UserLoginModel
+from app.models.user import UserRequestModel , UserLoginModel , RefreshTokenReqModel
 from app.utils.generate_username import generate_available_username
 
 from app.database.db import user_collection
+from datetime import datetime
 
 from app.utils.jwt_handler import create_access_token , create_refresh_token 
 from app.utils.hashing import get_hashed_password, verify_password
@@ -40,6 +41,10 @@ async def create_user(user_credential:UserRequestModel):
             
         )    
     
+    user_dict['created_at'] = datetime.now()
+    user_dict['role'] = "regular"
+    user_dict['is_deleted'] = False
+
     user_dict['password'] = await get_hashed_password(user_dict['password'])
     user_instance = await user_collection.insert_one(user_dict)
     
