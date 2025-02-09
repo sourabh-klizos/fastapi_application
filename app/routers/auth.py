@@ -1,16 +1,17 @@
 from fastapi import   APIRouter , HTTPException , status , Depends
 from typing import Any, Dict, List
 
-from app.models.user import UserRequestModel , UserLoginModel
+from app.models.user import UserRequestModel , UserLoginModel , UserEditReqModel
 from app.utils.generate_username import generate_available_username
 
-from app.database.db import user_collection
+from app.database.db import user_collection , trash_collection
 from datetime import datetime
 
 from app.utils.jwt_handler import create_access_token , create_refresh_token 
 from app.utils.hashing import get_hashed_password, verify_password
 from app.utils.get_current_logged_in_user import get_current_user_id
-from app.utils.convert_bson_id_str import  convert_objectids_list
+from app.utils.convert_bson_id_str import  convert_objectids_list ,convert_objectid
+from bson import ObjectId
 
 
 auth_routes = APIRouter(
@@ -50,7 +51,7 @@ async def create_user(user_credential:UserRequestModel):
     user_dict['created_at'] = datetime.now()
     user_dict['role'] = "regular"
     user_dict['is_deleted'] = False
-    user_dict['deleted_by'] = "None"
+    # user_dict['deleted_by'] = "None"
 
     user_dict['password'] = await get_hashed_password(user_dict['password'])
     await user_collection.insert_one(user_dict)
@@ -97,15 +98,93 @@ async def user_login(user_credential:UserLoginModel):
 
 
 @auth_routes.get("/users", status_code=status.HTTP_200_OK)
-async def retrive_active_users(current_user = Depends(get_current_user_id)):
+async def retrive_active_users(current_user = Depends(get_current_user_id)):#need to paginate
     users_cursor = user_collection.find({"is_deleted": False}, {"password":0})
     users_list = await users_cursor.to_list(length=None)
     users = await convert_objectids_list(users_list)
-    print(users)
-    # user_list = list(users)
-    # users = await  convert_objectids_list(user_list)
-
     return {
         "users" :users
     }
+
+
+@auth_routes.get("/users/{user_id}")
+async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id)):
+    user = await user_collection.find_one({"_id": ObjectId(user_id)}, {"password":0})
+    user = await convert_objectid(user)
+    return {"data" : user}
+
+
+@auth_routes.put("/users/{user_id}")
+async def get_user_detail(data :UserEditReqModel ,user_id:str, current_user = Depends(get_current_user_id)):
+    # print("data", data)
+    dict_data = data.model_dump()
+
+    data_to_update = dict()
+    if "email" in dict_data and dict_data['email'] is not None:
+        data_to_update['email'] = dict_data['email'].lower()
+    if "username" in dict_data and dict_data['username'] is not None:
+        data_to_update['username'] = dict_data['username'].lower()
+
+    is_admin_user = False
+    logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
+
+    if logged_in_user and logged_in_user['role'] == "admin":
+        is_admin_user = True
+
+    if current_user == user_id or is_admin_user:
+        # user = await user_collection.find_one({"_id":ObjectId(user_id)})
+        print(data_to_update)
+        await user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": data_to_update})
+        user =  await user_collection.find_one({"_id":ObjectId(user_id)}, {"password":0})
+
+
+        user_data = await convert_objectid(user)
+        
+    return {"data":user_data}
+
+
+
+@auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def soft_delete_user(user_id : str, current_user =Depends(get_current_user_id)):
+
+    is_admin_user = False
+    logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
+
+    if logged_in_user and logged_in_user['role'] == "admin":
+        is_admin_user = True
+
+    if current_user == user_id or is_admin_user:
+        user = await user_collection.find_one({"_id":ObjectId(user_id)})
+        if user:
+            if user['is_deleted']:
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Alredy Deleted"
+            )
+
+            condition = {"_id": ObjectId(user_id)}
+            update = {"$set": {"is_deleted": True}}
+
+            user = await user_collection.update_one(condition,update)
+            trash = {
+                "user_id":user_id,
+                "deleted_by" :current_user,
+                "deleted_at" : datetime.now()
+            }
+
+            await trash_collection.insert_one(trash)
+            return
+
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User Doesn't Exists"
+            )
+    else:
+        raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to performe this action"
+            )
+
+
 

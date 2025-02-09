@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr ,  model_validator
 from typing import Optional , List, Dict, Any
 from datetime import datetime
 
@@ -29,16 +29,15 @@ class UserRequestModel(BaseModel):
 
 
     
+class UserEditReqModel(BaseModel):
+    email: Optional[EmailStr] = None
+    username: Optional[str] = None
 
-# class UserResModel(UserRequestModel):
-#     id:str
-#     email: EmailStr
-#     username:str
-#     role:str
-
-
-
-
+    @model_validator(mode="before")
+    def check_at_least_one(cls, values):
+        if not values.get("email") and not values.get("username"):
+            raise ValueError("At least one of 'email' or 'username' must be provided.")
+        return values
 
 # class UserResModel(UserRequestModel):
 #     id:str
