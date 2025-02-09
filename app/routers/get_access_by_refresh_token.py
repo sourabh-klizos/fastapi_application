@@ -4,14 +4,14 @@ from app.database.db import refresh_token_collection
 from app.models.user import RefreshTokenReqModel
 from app.utils.jwt_handler import decode_jwt
 
-access_router = APIRouter(
+access_routes= APIRouter(
     prefix="/api/v1/refresh"
 ) 
 
 
 
 
-@access_router.post("/", status_code=status.HTTP_200_OK)
+@access_routes.post("/", status_code=status.HTTP_200_OK)
 async def get_access_token(refresh_token:RefreshTokenReqModel):
     refresh_token = refresh_token.model_dump()
     

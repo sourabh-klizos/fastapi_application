@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 
-def convert_objectid(document: Dict[str,Any]) -> Dict[str, Any]:
+async def convert_objectid(document: Dict[str,Any]) -> Dict[str, Any]:
     if document and "_id" in document:
         document["id"] = str(document["_id"])
         del document["_id"]
@@ -12,8 +12,8 @@ def convert_objectid(document: Dict[str,Any]) -> Dict[str, Any]:
 
 
 
-def convert_objectids_list(documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    return [ convert_objectid(document) for document in documents]
+async def convert_objectids_list(documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [ await convert_objectid(document) for document in documents]
 
 
 
@@ -30,11 +30,20 @@ class UserRequestModel(BaseModel):
 
     
 
+# class UserResModel(UserRequestModel):
+#     id:str
+#     email: EmailStr
+#     username:str
+#     role:str
 
-class UserResModel(UserRequestModel):
-    id:str
-    updated_at: Optional[datetime] = None
-    is_deleted: bool = False
+
+
+
+
+# class UserResModel(UserRequestModel):
+#     id:str
+#     updated_at: Optional[datetime] = None
+#     is_deleted: bool = False
 
 
 
