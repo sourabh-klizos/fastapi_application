@@ -181,12 +181,9 @@ async def get_user_detail(
         is_admin_user = True
 
     if current_user == user_id or is_admin_user:
-        # user = await user_collection.find_one({"_id":ObjectId(user_id)})
-        # print(data_to_update)
         data_to_update['updated_at'] = datetime.now()
         await user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": data_to_update})
         user =  await user_collection.find_one({"_id":ObjectId(user_id)}, {"password":0})
-
 
         user_data = await convert_objectid(user)
     else:
@@ -213,9 +210,9 @@ async def soft_delete_user(user_id : str, current_user =Depends(get_current_user
         if user:
             if user['is_deleted']:
                 raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Alredy Deleted"
-            )
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Alredy Deleted"
+                )
 
             condition = {"_id": ObjectId(user_id)}
             update = {"$set": {"is_deleted": True}}
