@@ -11,6 +11,7 @@ from app.utils.jwt_handler import create_access_token , create_refresh_token
 from app.utils.hashing import get_hashed_password, verify_password
 from app.utils.get_current_logged_in_user import get_current_user_id
 from app.utils.convert_bson_id_str import  convert_objectid
+from app.models.jwt_token import TokenResponseModel
 from app.utils.paginator import paginate_query
 
 
@@ -60,7 +61,7 @@ async def create_user(user_credential:UserRequestModel):
     return {"message": "User account created successfully."}
 
 
-@auth_routes.post("/login", status_code=status.HTTP_200_OK)
+@auth_routes.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponseModel)
 async def user_login(user_credential:UserLoginModel):
     user_dict = user_credential.model_dump()    
     email = user_dict['email'].lower()
@@ -86,12 +87,11 @@ async def user_login(user_credential:UserLoginModel):
     
     access_token = await create_access_token(user_id)
     refresh_token = await create_refresh_token(user_id)
-
-    return {
-        "access_token":access_token,
-        "refresh_token":refresh_token
-        }
-
+    response = {
+        "access_token" :access_token,
+        "refresh_token" :refresh_token
+    }
+    return response
 
 
 
@@ -114,7 +114,6 @@ async def retrive_active_users(
             "$options": "i"  
         }
 
-
     try:
         paginated_response = await  paginate_query(
             query=query,
@@ -135,6 +134,7 @@ async def retrive_active_users(
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id)):
+
     user = await user_collection.find_one({"_id": ObjectId(user_id), "is_deleted" :False}, {"password":0})
     if user is None:
         raise HTTPException(
