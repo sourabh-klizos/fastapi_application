@@ -104,7 +104,7 @@ async def retrive_active_users(
     page: int = Query(1, ge=1), 
     per_page: Optional[int] = Query(10, ge=1, le=30), 
     q: Optional[str] = Query(None) 
-    ):
+):
 
     query = {"is_deleted": False}
     exclude_fields = {"password":0}
@@ -135,7 +135,12 @@ async def retrive_active_users(
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id)):
-    user = await user_collection.find_one({"_id": ObjectId(user_id)}, {"password":0})
+    user = await user_collection.find_one({"_id": ObjectId(user_id), "is_deleted" :False}, {"password":0})
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
     user = await convert_objectid(user)
     return user
 
@@ -147,7 +152,7 @@ async def get_user_detail(
 ):
 
     dict_data = data.model_dump()
-    
+
     data_to_update = dict()
     if "email" in dict_data and dict_data['email'] is not None:
         email_alredy_exits = await user_collection.find_one({"email" :dict_data['email'].lower()})
