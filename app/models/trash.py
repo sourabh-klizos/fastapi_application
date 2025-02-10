@@ -1,16 +1,23 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import List, Optional
 
 
 
 
 
-class TrashRequestModel(BaseModel):
+class TrashResponseModel(BaseModel):
+    id: str
     user_id: str
     deleted_by: str
     deleted_at: datetime = datetime.now()
 
+class PaginatedTrashResponseModel(BaseModel):
+    has_previous: Optional[bool] = None
+    has_next: Optional[bool] = None
+    data: List[TrashResponseModel]
 
-class TrashResponseModel(TrashRequestModel):
-    username: str
 
+
+class BulkTrashIds(BaseModel):
+    ids: List[str]

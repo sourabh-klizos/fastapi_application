@@ -17,7 +17,7 @@ async def get_current_user_id(token: str = Security(oauth2_scheme)):
         )
     
   
-    user_details = await decode_jwt(token)
+    user_details = await decode_jwt(token, "access_token")
 
     if not user_details:
         raise HTTPException(

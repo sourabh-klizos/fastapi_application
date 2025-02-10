@@ -58,3 +58,22 @@ class UserLoginModel(BaseModel):
 class RefreshTokenReqModel(BaseModel):
     refresh_token: str
     
+
+
+class UserResponseModel(BaseModel):
+    id: str
+    email: EmailStr
+    role: str
+    username: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    is_deleted: bool
+
+
+
+class PaginatedUserResponseModel(BaseModel):
+    has_previous: Optional[bool] = None
+    has_next: Optional[bool] = None
+    data: List[UserResponseModel]
+
+

@@ -1,17 +1,127 @@
-from fastapi import APIRouter, status, HTTPException , Depends , Security
+from fastapi import APIRouter, status, HTTPException , Depends , Security, Query
 
 from fastapi.security import OAuth2PasswordBearer
 from app.utils.get_current_logged_in_user import get_current_user_id
 from app.database.db import user_collection, trash_collection
 from bson import ObjectId
 from datetime import datetime
-
+from app.utils.convert_bson_id_str import convert_objectids_list
+from app.models.trash import TrashResponseModel, PaginatedTrashResponseModel, BulkTrashIds
+from typing import List , Optional
+from app.utils.paginator import paginate_query
+from app.utils.str_to_bson import convert_str_object_id
 
 
 
 trash_routes = APIRouter(
-    prefix="/api/v1/trash"
+    prefix="/api/v1/trash",
+    tags=['trash']
 )
+
+
+
+@trash_routes.get("/", response_model=PaginatedTrashResponseModel, status_code=status.HTTP_200_OK)
+async def view_trash(
+    user_id=Depends(get_current_user_id),
+    page: int = Query(1, ge=1), 
+    per_page: Optional[int] = Query(10, ge=1, le=20),
+):
+    
+    try:
+        logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
+
+        if logged_in_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        if logged_in_user['role'] != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to perform this action"
+            )
+
+        response = await paginate_query(
+            collection=trash_collection,
+            query={},
+            exclude_fields={},
+            page=page,
+            per_page=per_page 
+        )
+        
+        return response
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
+        
+    
+
+
+
+
+@trash_routes.post("/bulk-delete", status_code=status.HTTP_200_OK)
+async def bulk_delete(trash_ids:BulkTrashIds, current_user_id = Depends(get_current_user_id)):
+    logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user_id)})
+
+    if not logged_in_user or logged_in_user['role'] != "admin":
+        raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to perform this action"
+            )
+  
+
+    trash_ids = trash_ids.model_dump()
+    alredy_deleted_user = list()
+    deleted_users = list()
+
+    trash_id_list = await  convert_str_object_id(trash_ids['ids'])
+    for id in trash_id_list:
+        user = await user_collection.find_one({"_id":id})
+        if user and not user['is_deleted']:
+            await  user_collection.update_one({"_id":id}, {"$set":{"is_deleted" :True}})
+
+            await trash_collection.insert_one({
+                "user_id": str(id), 
+                "deleted_by" :str(current_user_id),
+                "deleted_at" : datetime.now()
+                })
+            
+            deleted_users.append(str(id))
+        else:
+            alredy_deleted_user.append(str(id))
+
+
+    return {
+        "alredy_deleted_user" : alredy_deleted_user,
+        "deleted_now" : deleted_users
+    }
+    
+    print(trash_ids)
+    return "got it"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

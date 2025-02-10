@@ -1,21 +1,22 @@
-from fastapi import   APIRouter , HTTPException , status , Depends
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from app.models.user import UserRequestModel , UserLoginModel , UserEditReqModel
-from app.utils.generate_username import generate_available_username
-
-from app.database.db import user_collection , trash_collection
+from fastapi import   APIRouter , HTTPException , status , Depends, Query
 from datetime import datetime
+from bson import ObjectId
 
+from app.models.user import UserRequestModel , UserLoginModel , UserEditReqModel , UserResponseModel, PaginatedUserResponseModel
+from app.utils.generate_username import generate_available_username
+from app.database.db import user_collection , trash_collection
 from app.utils.jwt_handler import create_access_token , create_refresh_token 
 from app.utils.hashing import get_hashed_password, verify_password
 from app.utils.get_current_logged_in_user import get_current_user_id
-from app.utils.convert_bson_id_str import  convert_objectids_list ,convert_objectid
-from bson import ObjectId
+from app.utils.convert_bson_id_str import  convert_objectid
+from app.utils.paginator import paginate_query
 
 
 auth_routes = APIRouter(
-    prefix="/api/v1/auth"
+    prefix="/api/v1/auth",
+    tags=['user']
 )
 
 
@@ -43,7 +44,7 @@ async def create_user(user_credential:UserRequestModel):
         choose_username = await generate_available_username(username)    
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={    "message" :"User already exists with this username" ,
+            detail= {   "message" :"User already exists with this username" ,
                         "suggested_usernames" :choose_username
                     }
         )    
@@ -51,9 +52,9 @@ async def create_user(user_credential:UserRequestModel):
     user_dict['created_at'] = datetime.now()
     user_dict['role'] = "regular"
     user_dict['is_deleted'] = False
-    # user_dict['deleted_by'] = "None"
-
+    user_dict['updated_at'] = None
     user_dict['password'] = await get_hashed_password(user_dict['password'])
+
     await user_collection.insert_one(user_dict)
     
     return {"message": "User account created successfully."}
@@ -64,7 +65,6 @@ async def user_login(user_credential:UserLoginModel):
     user_dict = user_credential.model_dump()    
     email = user_dict['email'].lower()
     password = user_dict.get("password")
-
 
     user_instance = await user_collection.find_one({"email" : email})
     if not user_instance:
@@ -83,6 +83,7 @@ async def user_login(user_credential:UserLoginModel):
         )
 
     user_id = str(user_instance.get("_id"))
+    
     access_token = await create_access_token(user_id)
     refresh_token = await create_refresh_token(user_id)
 
@@ -97,32 +98,75 @@ async def user_login(user_credential:UserLoginModel):
 
 
 
-@auth_routes.get("/users", status_code=status.HTTP_200_OK)
-async def retrive_active_users(current_user = Depends(get_current_user_id)):#need to paginate
-    users_cursor = user_collection.find({"is_deleted": False}, {"password":0})
-    users_list = await users_cursor.to_list(length=None)
-    users = await convert_objectids_list(users_list)
-    return {
-        "users" :users
-    }
+@auth_routes.get("/users",response_model=PaginatedUserResponseModel, status_code=status.HTTP_200_OK) 
+async def retrive_active_users(
+    current_user = Depends(get_current_user_id),
+    page: int = Query(1, ge=1), 
+    per_page: Optional[int] = Query(10, ge=1, le=30), 
+    q: Optional[str] = Query(None) 
+    ):
+
+    query = {"is_deleted": False}
+    exclude_fields = {"password":0}
+    if q is not None:
+        query['username'] = {
+            "$regex": q,  
+            "$options": "i"  
+        }
 
 
-@auth_routes.get("/users/{user_id}")
+    try:
+        paginated_response = await  paginate_query(
+            query=query,
+            exclude_fields=exclude_fields,
+            collection=user_collection,
+            page=page,
+            per_page=per_page
+            )
+    
+        return paginated_response 
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
+    
+
+@auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id)):
     user = await user_collection.find_one({"_id": ObjectId(user_id)}, {"password":0})
     user = await convert_objectid(user)
-    return {"data" : user}
+    return user
 
 
-@auth_routes.put("/users/{user_id}")
-async def get_user_detail(data :UserEditReqModel ,user_id:str, current_user = Depends(get_current_user_id)):
-    # print("data", data)
+@auth_routes.put("/users/{user_id}", response_model=UserResponseModel, status_code=status.HTTP_200_OK)
+async def get_user_detail(
+    data :UserEditReqModel,user_id:str,
+    current_user = Depends(get_current_user_id)
+):
+
     dict_data = data.model_dump()
-
+    
     data_to_update = dict()
     if "email" in dict_data and dict_data['email'] is not None:
+        email_alredy_exits = await user_collection.find_one({"email" :dict_data['email'].lower()})
+
+        if email_alredy_exits:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email Alredy Exists"
+            )
+
         data_to_update['email'] = dict_data['email'].lower()
+        
     if "username" in dict_data and dict_data['username'] is not None:
+        username_alredy_exists = await  user_collection.find_one({"username" :dict_data['username'].lower()})
+        if username_alredy_exists:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username Alredy Exists"
+            )
         data_to_update['username'] = dict_data['username'].lower()
 
     is_admin_user = False
@@ -133,14 +177,20 @@ async def get_user_detail(data :UserEditReqModel ,user_id:str, current_user = De
 
     if current_user == user_id or is_admin_user:
         # user = await user_collection.find_one({"_id":ObjectId(user_id)})
-        print(data_to_update)
+        # print(data_to_update)
+        data_to_update['updated_at'] = datetime.now()
         await user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": data_to_update})
         user =  await user_collection.find_one({"_id":ObjectId(user_id)}, {"password":0})
 
 
         user_data = await convert_objectid(user)
-        
-    return {"data":user_data}
+    else:
+        raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You dont have access to perfome this action"
+            )
+
+    return user_data
 
 
 

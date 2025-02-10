@@ -12,7 +12,8 @@ from app.utils.hashing import get_hashed_password
 
 
 admin_routes = APIRouter(
-    prefix="/api/v1/auth/admin"
+    prefix="/api/v1/auth/admin",
+    tags=['admin']
 )
 
 
@@ -45,6 +46,7 @@ async def create_user(user_credential:UserRequestModel):
     user_dict['created_at'] = datetime.now()
     user_dict['role'] = "admin"
     user_dict['is_deleted'] = False
+    user_dict['updated_at'] = None
 
     user_dict['password'] = await get_hashed_password(user_dict['password'])
     user_instance = await user_collection.insert_one(user_dict)

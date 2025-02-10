@@ -5,7 +5,8 @@ from app.models.user import RefreshTokenReqModel
 from app.utils.jwt_handler import decode_jwt
 
 access_routes= APIRouter(
-    prefix="/api/v1/refresh"
+    prefix="/api/v1/refresh",
+    tags=['obtain_access_by_refresh_token']
 ) 
 
 
@@ -15,11 +16,11 @@ access_routes= APIRouter(
 async def get_access_token(refresh_token:RefreshTokenReqModel):
     refresh_token = refresh_token.model_dump()
     
-    decoded_refresh = await decode_jwt(refresh_token.get('refresh_token'))
+    decoded_refresh = await decode_jwt(refresh_token.get('refresh_token'), "refresh_token")
     if not decoded_refresh:
         raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST, detail="Not a valid refresh token"
-
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Not a valid refresh token"
     )
 
     user_id = decoded_refresh['user_id']
@@ -30,8 +31,11 @@ async def get_access_token(refresh_token:RefreshTokenReqModel):
         access_token = await create_access_token(user_id=user_id)
         return {"access_token":access_token}
     raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to perfome this operation"
-
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have permission to perfome this operation"
     )
+
+
+
     
 
