@@ -3,11 +3,13 @@ from jose import jwt
 
 from datetime import datetime ,timedelta , timezone
 from uuid import uuid4
-from app.database.db import refresh_token_collection
 
+from pymongo.collection import Collection
+import os
 
-SECRET_KEY = "bGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+
 
 
 
@@ -36,7 +38,9 @@ async def create_access_token(user_id:str, minutes:int=None) -> dict:
 
 
 
-async def create_refresh_token(user_id:str, hours:int=None) -> dict:
+async def create_refresh_token(user_id:str,db, hours:int=None) -> dict:
+    refresh_token_collection: Collection = db['refresh_tokens']
+
     if not hours:
         hours = 24 * 7 
 

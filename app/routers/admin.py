@@ -1,9 +1,10 @@
-from fastapi import   APIRouter , HTTPException , status
+from fastapi import   APIRouter , HTTPException , status , Depends
+from app.database.db import  get_db
 
 from app.models.user import UserRequestModel 
 from app.utils.generate_username import generate_available_username
 
-from app.database.db import user_collection
+# from app.database.db import user_collection
 from datetime import datetime
 from app.utils.hashing import get_hashed_password
 
@@ -19,7 +20,9 @@ admin_routes = APIRouter(
 
 
 @admin_routes.post('/signup', status_code=status.HTTP_201_CREATED)
-async def create_user(user_credential:UserRequestModel):
+async def create_user(user_credential:UserRequestModel, db=Depends(get_db)):
+
+    user_collection = db['users']
 
     user_dict = user_credential.model_dump()    
     user_dict['email'] = user_dict['email'].lower()
@@ -44,7 +47,7 @@ async def create_user(user_credential:UserRequestModel):
         )    
     
     user_dict['created_at'] = datetime.now()
-    user_dict['role'] = "admin"
+    user_dict['role']       = "admin"
     user_dict['is_deleted'] = False
     user_dict['updated_at'] = None
 

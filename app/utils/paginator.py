@@ -33,7 +33,7 @@ async def paginate_query(
     collection: Collection
 ) -> List[Dict[str, Any]]:
     """
-    returns paginated response i have set default per_page 10 
+    returns paginated response of a collection
     """
     skip = (page - 1) * per_page 
     document_cursor_obj = collection.find(query,exclude_fields).skip(skip).limit(per_page)

@@ -6,14 +6,16 @@ from bson import ObjectId
 
 from app.models.user import UserRequestModel , UserLoginModel , UserEditReqModel , UserResponseModel, PaginatedUserResponseModel
 from app.utils.generate_username import generate_available_username
-from app.database.db import user_collection , trash_collection
+# from app.database.db import user_collection , trash_collection
 from app.utils.jwt_handler import create_access_token , create_refresh_token 
 from app.utils.hashing import get_hashed_password, verify_password
 from app.utils.get_current_logged_in_user import get_current_user_id
 from app.utils.convert_bson_id_str import  convert_objectid
 from app.models.jwt_token import TokenResponseModel
 from app.utils.paginator import paginate_query
-
+from app.database.db import  get_db
+from pymongo.collection import Collection
+from app.utils.is_admin import is_logged_in_and_admin
 
 auth_routes = APIRouter(
     prefix="/api/v1/auth",
@@ -23,7 +25,9 @@ auth_routes = APIRouter(
 
 
 @auth_routes.post('/signup', status_code=status.HTTP_201_CREATED)
-async def create_user(user_credential:UserRequestModel):
+async def create_user(user_credential:UserRequestModel, db=Depends(get_db)):
+
+    user_collection: Collection = db['users']
 
     user_dict = user_credential.model_dump()    
     user_dict['email'] = user_dict['email'].lower()
@@ -42,7 +46,7 @@ async def create_user(user_credential:UserRequestModel):
         )
     
     if username_already_exists:
-        choose_username = await generate_available_username(username)    
+        choose_username = await generate_available_username(username , db)    
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail= {   "message" :"User already exists with this username" ,
@@ -61,8 +65,10 @@ async def create_user(user_credential:UserRequestModel):
     return {"message": "User account created successfully."}
 
 
-@auth_routes.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponseModel)
-async def user_login(user_credential:UserLoginModel):
+@auth_routes.post("/login", status_code=status.HTTP_200_OK, response_model=TokenResponseModel )
+async def user_login(user_credential:UserLoginModel,db=Depends(get_db)):
+    user_collection: Collection = db['users']
+
     user_dict = user_credential.model_dump()    
     email = user_dict['email'].lower()
     password = user_dict.get("password")
@@ -86,7 +92,7 @@ async def user_login(user_credential:UserLoginModel):
     user_id = str(user_instance.get("_id"))
     
     access_token = await create_access_token(user_id)
-    refresh_token = await create_refresh_token(user_id)
+    refresh_token = await create_refresh_token(user_id=user_id, db=db)
     response = {
         "access_token" :access_token,
         "refresh_token" :refresh_token
@@ -103,11 +109,14 @@ async def retrive_active_users(
     current_user = Depends(get_current_user_id),
     page: int = Query(1, ge=1), 
     per_page: Optional[int] = Query(10, ge=1, le=30), 
-    q: Optional[str] = Query(None) 
+    q: Optional[str] = Query(None),
+    db=Depends(get_db)
 ):
-
+    
+    user_collection: Collection = db['users']
     query = {"is_deleted": False}
     exclude_fields = {"password":0}
+
     if q is not None:
         query['username'] = {
             "$regex": q,  
@@ -133,7 +142,9 @@ async def retrive_active_users(
     
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
-async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id)):
+async def get_user_detail(user_id:str, current_user = Depends(get_current_user_id), db= Depends(get_db)):
+
+    user_collection: Collection = db['users']
 
     user = await user_collection.find_one({"_id": ObjectId(user_id), "is_deleted" :False}, {"password":0})
     if user is None:
@@ -148,9 +159,11 @@ async def get_user_detail(user_id:str, current_user = Depends(get_current_user_i
 @auth_routes.put("/users/{user_id}", response_model=UserResponseModel, status_code=status.HTTP_200_OK)
 async def get_user_detail(
     data :UserEditReqModel,user_id:str,
-    current_user = Depends(get_current_user_id)
+    current_user = Depends(get_current_user_id),
+    db = Depends(get_db)
 ):
-
+    
+    user_collection: Collection = db['users']
     dict_data = data.model_dump()
 
     data_to_update = dict()
@@ -174,14 +187,14 @@ async def get_user_detail(
             )
         data_to_update['username'] = dict_data['username'].lower()
 
-    is_admin_user = False
     logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
 
-    if logged_in_user and logged_in_user['role'] == "admin":
-        is_admin_user = True
+    is_admin_user = await is_logged_in_and_admin(logged_in_user,raise_error=False)
 
     if current_user == user_id or is_admin_user:
         data_to_update['updated_at'] = datetime.now()
+        data_to_update['updated_by'] = str(current_user)
+
         await user_collection.update_one({"_id": ObjectId(user_id)}, {"$set": data_to_update})
         user =  await user_collection.find_one({"_id":ObjectId(user_id)}, {"password":0})
 
@@ -197,13 +210,13 @@ async def get_user_detail(
 
 
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def soft_delete_user(user_id : str, current_user =Depends(get_current_user_id)):
-
-    is_admin_user = False
+async def soft_delete_user(user_id : str, current_user =Depends(get_current_user_id), db=Depends(get_db)):
+    user_collection: Collection = db['users']
+    trash_collection: Collection = db['trash']
+    
     logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
+    is_admin_user = await is_logged_in_and_admin(logged_in_user,raise_error=False)
 
-    if logged_in_user and logged_in_user['role'] == "admin":
-        is_admin_user = True
 
     if current_user == user_id or is_admin_user:
         user = await user_collection.find_one({"_id":ObjectId(user_id)})

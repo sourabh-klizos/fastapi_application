@@ -68,6 +68,7 @@ class UserResponseModel(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     is_deleted: bool
+    updated_by: Optional[str] = None
 
 
 

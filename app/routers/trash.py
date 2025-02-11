@@ -2,15 +2,18 @@ from fastapi import APIRouter, status, HTTPException , Depends , Security, Query
 
 from fastapi.security import OAuth2PasswordBearer
 from app.utils.get_current_logged_in_user import get_current_user_id
-from app.database.db import user_collection, trash_collection
+# from app.database.db import user_collection, trash_collection
 from bson import ObjectId
 from datetime import datetime
-from app.utils.convert_bson_id_str import convert_objectids_list
+from app.utils.convert_bson_id_str import convert_objectids_list , convert_objectid
 from app.models.trash import TrashResponseModel, PaginatedTrashResponseModel, BulkTrashIds
 from typing import List , Optional
 from app.utils.paginator import paginate_query
 from app.utils.str_to_bson import convert_str_object_id
-
+from app.database.db import get_db
+from pymongo.collection import Collection
+from app.models.user import UserResponseModel
+from app.utils.is_admin import is_logged_in_and_admin
 
 
 trash_routes = APIRouter(
@@ -25,38 +28,25 @@ async def view_trash(
     user_id=Depends(get_current_user_id),
     page: int = Query(1, ge=1), 
     per_page: Optional[int] = Query(10, ge=1, le=20),
+    db = Depends(get_db)
 ):
+    user_collection: Collection = db['users']
+    trash_collection: Collection = db['trash']
+    # try:
+    logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
+    is_admin = await is_logged_in_and_admin(logged_in_user)
+
+    response = await paginate_query(
+        collection=trash_collection,
+        query={},
+        exclude_fields={},
+        page=page,
+        per_page=per_page 
+    )
     
-    try:
-        logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
+    return response
 
-        if logged_in_user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
 
-        if logged_in_user['role'] != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to perform this action"
-            )
-
-        response = await paginate_query(
-            collection=trash_collection,
-            query={},
-            exclude_fields={},
-            page=page,
-            per_page=per_page 
-        )
-        
-        return response
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}"
-        )
         
     
 
@@ -65,19 +55,12 @@ async def view_trash(
 
 @trash_routes.post("/bulk-delete", status_code=status.HTTP_200_OK)
 
-async def bulk_delete(trash_ids:BulkTrashIds, current_user_id = Depends(get_current_user_id)):
+async def bulk_delete(trash_ids:BulkTrashIds, current_user_id = Depends(get_current_user_id), db = Depends(get_db)):
+    user_collection: Collection = db['users']
+    trash_collection: Collection = db['trash']
     logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user_id)})
 
-    if logged_in_user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-    if logged_in_user['role'] != "admin":
-        raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to perform this action"
-            )
+    is_admin = await is_logged_in_and_admin(logged_in_user)
   
 
     trash_ids = trash_ids.model_dump()
@@ -110,116 +93,80 @@ async def bulk_delete(trash_ids:BulkTrashIds, current_user_id = Depends(get_curr
 
 
 @trash_routes.put("/restore/{user_id}", status_code=status.HTTP_200_OK)
-async def restore_user(user_id:str,current_user= Depends(get_current_user_id)):
-    try:
-        logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
+async def restore_user(user_id:str,current_user= Depends(get_current_user_id), db = Depends(get_db)):
+    user_collection: Collection = db['users']
+    trash_collection: Collection = db['trash']
+    logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
 
-        if logged_in_user is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
-                )
-        if logged_in_user['role'] != "admin":
-            raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You don't have access to perform this action"
-                )
+    is_admin = await is_logged_in_and_admin(logged_in_user)
+    
+
+    user_to_restore = await user_collection.find_one({"_id":ObjectId(current_user)})
+    if not user_to_restore:
+        raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+        )
         
+    if user_to_restore['is_deleted'] == False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail= "You are Trying to restore a non deleted user"
+        )
+    
+    trash =  await trash_collection.find_one_and_delete({"user_id" :user_id})
 
-        user_to_restore = await user_collection.find_one({"_id":ObjectId(current_user)})
-        if not user_to_restore:
-            raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
-            )
+    if not trash:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either user is permanantly deleted or not soft deleted"
+        )
             
-        if user_to_restore['is_deleted'] == False:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail= "You are Trying to restore a non deleted user"
-            )
-        
-        updated_user = await user_collection.find_one_and_update(
-            {"_id": ObjectId(user_id), "is_deleted": True}, 
-            {"$set": {"is_deleted": False}},  
-            return_document=True 
+    updated_user = await user_collection.find_one_and_update(
+        {"_id": ObjectId(user_id), "is_deleted": True}, 
+        {"$set": {"is_deleted": False}},  
+        return_document=True 
+    )
+
+    if trash:
+        user_data = await user_collection.find_one({"_id": ObjectId(user_id), "is_deleted": False}, {"password":0})
+        response = await convert_objectid(user_data)
+        return response
+
+  
+    raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
         )
 
-        trash =  await trash_collection.find_one_and_delete({"user_id" :user_id})
-        if trash:
-            return {"success" : "Usccessfully restored user"}
-
-      
-    except Exception as e:
-        print(e)
-
-    return {"success" : "succuess"}
 
 
 
+@trash_routes.delete("/permanent/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def permanent_delete(user_id:str, current_user = Depends(get_current_user_id), db =Depends(get_db)):
+    user_collection: Collection = db['users']
+    trash_collection: Collection = db['trash']
+
+    logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
+
+    is_admin = await is_logged_in_and_admin(logged_in_user)
+    
+    trash_user = await trash_collection.find_one_and_delete({"user_id" : user_id})
+    if trash_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You are Trying to permanently delete a user who is alredy deleted or not soft deleted"
+        )
+    if trash_user:
+        return
+
+    raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# @trash_routes.post("/{user_id}/", status_code=status.HTTP_204_NO_CONTENT)
-# async def soft_delete_user(user_id : str, current_user =Depends(get_current_user_id)):
-
-#     is_admin_user = False
-#     logged_in_user = await user_collection.find_one({"_id":ObjectId(current_user)})
-
-#     if logged_in_user and logged_in_user['role'] == "admin":
-#         is_admin_user = True
-
-#     if current_user == user_id or is_admin_user:
-#         user = await user_collection.find_one({"_id":ObjectId(user_id)})
-#         if user:
-#             if user['is_deleted']:
-#                 raise HTTPException(
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#                 detail="Alredy Deleted"
-#             )
-
-#             condition = {"_id": ObjectId(user_id)}
-#             update = {"$set": {"is_deleted": True}}
-
-#             user = await user_collection.update_one(condition,update)
-#             trash = {
-#                 "user_id":user_id,
-#                 "deleted_by" :current_user,
-#                 "deleted_at" : datetime.now()
-#             }
-
-#             await trash_collection.insert_one(trash)
-
-#             print(trash, " --")
-
-#             return
-
-#         else:
-#             raise HTTPException(
-#                 status_code=status.HTTP_404_NOT_FOUND,
-#                 detail="User Doesn't Exists"
-#             )
-#     else:
-#         raise HTTPException(
-#                 status_code=status.HTTP_403_FORBIDDEN,
-#                 detail="You don't have access to performe this action"
-#             )
 
 
 

@@ -18,3 +18,29 @@ users = await convert_objectids_list(users)
 
 
 uvicorn app.main:app --reload --timeout-keep-alive 60
+
+
+
+
+
+
+
+
+
+    # if logged_in_user is None:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="User not found"
+    #     )
+
+    # if logged_in_user['role'] != "admin":
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="You don't have access to perform this action"
+    #     )
+
+
+
+
+    # if logged_in_user and logged_in_user['role'] == "admin":
+    #     is_admin_user = True

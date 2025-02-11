@@ -2,13 +2,21 @@ from fastapi import FastAPI , status
 from app.routers import auth , get_access_by_refresh_token as obtain_access_router , admin , trash
 
 
+from dotenv import load_dotenv
+
+
 
 
 app = FastAPI()
+load_dotenv('.env')
+
+
+    
 app.include_router(auth.auth_routes)
 app.include_router(obtain_access_router.access_routes)
 app.include_router(admin.admin_routes)
 app.include_router(trash.trash_routes)
+
 
 
 
