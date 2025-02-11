@@ -1,2 +1,3 @@
-git rm -r --cached venv/
+# git rm -r --cached venv/
 venv/
+*.pyc
