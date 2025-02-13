@@ -28,3 +28,4 @@ typing_extensions==4.12.2
 uvicorn==0.34.0
 python-dotenv
 pydantic-settings
+# pip install pytest pytest-asyncio httpx

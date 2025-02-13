@@ -1,34 +1,27 @@
-from pydantic import BaseModel, EmailStr ,  model_validator
-from typing import Optional , List, Dict, Any
+from pydantic import BaseModel, EmailStr, model_validator
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
-
-async def convert_objectid(document: Dict[str,Any]) -> Dict[str, Any]:
+async def convert_objectid(document: Dict[str, Any]) -> Dict[str, Any]:
     if document and "_id" in document:
         document["id"] = str(document["_id"])
         del document["_id"]
     return document
 
 
-
-async def convert_objectids_list(documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    return [ await convert_objectid(document) for document in documents]
-
-
-
+async def convert_objectids_list(
+    documents: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    return [await convert_objectid(document) for document in documents]
 
 
 class UserRequestModel(BaseModel):
-
     email: EmailStr
-    username:str
+    username: str
     password: str
-    # created_at: datetime = datetime.now()
 
 
-
-    
 class UserEditReqModel(BaseModel):
     email: Optional[EmailStr] = None
     username: Optional[str] = None
@@ -39,25 +32,10 @@ class UserEditReqModel(BaseModel):
             raise ValueError("At least one of 'email' or 'username' must be provided.")
         return values
 
-# class UserResModel(UserRequestModel):
-#     id:str
-#     updated_at: Optional[datetime] = None
-#     is_deleted: bool = False
-
-
 
 class UserLoginModel(BaseModel):
     email: EmailStr
     password: str
-
-
-
-
-
-
-class RefreshTokenReqModel(BaseModel):
-    refresh_token: str
-    
 
 
 class UserResponseModel(BaseModel):
@@ -71,10 +49,7 @@ class UserResponseModel(BaseModel):
     updated_by: Optional[str] = None
 
 
-
 class PaginatedUserResponseModel(BaseModel):
     has_previous: Optional[bool] = None
     has_next: Optional[bool] = None
     data: List[UserResponseModel]
-
-

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from motor import  motor_asyncio
+from motor import motor_asyncio
 import os
 
 
@@ -16,9 +16,8 @@ import os
 # data = await db["mycollection"].find_one({"name": "test"})
 
 
-DATABASE_URL =os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
 DB_NAME = os.getenv("DB_NAME")
-
 
 
 async def get_db():
@@ -29,6 +28,3 @@ async def get_db():
         yield db
     finally:
         client.close()
-
-
-

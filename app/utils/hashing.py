@@ -1,6 +1,4 @@
-
 import bcrypt
-
 
 
 async def get_hashed_password(password: str) -> bytes:
