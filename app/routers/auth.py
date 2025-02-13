@@ -10,6 +10,7 @@ from app.models.user import (
     UserEditReqModel,
     UserResponseModel,
     PaginatedUserResponseModel,
+    ReasonRequestModel
 )
 from app.utils.generate_username import generate_available_username
 
@@ -217,10 +218,16 @@ async def get_user_detail(
 
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
-    user_id: str, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: str,
+    reason: ReasonRequestModel,
+    current_user=Depends(get_current_user_id),
+    db=Depends(get_db)
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
+
+    reason = reason.model_dump()
+    reason = reason.get("reason")
 
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
     is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
@@ -247,6 +254,7 @@ async def soft_delete_user(
                 "user_id": user_id,
                 "deleted_by": current_user,
                 "deleted_at": datetime.now(),
+                "reason": reason
             }
 
             await trash_collection.insert_one(trash)

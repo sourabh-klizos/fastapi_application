@@ -7,7 +7,7 @@ from app.utils.generate_username import generate_available_username
 # from app.database.db import user_collection
 from datetime import datetime
 from app.utils.hashing import get_hashed_password
-
+from pymongo.collection import Collection
 
 admin_routes = APIRouter(prefix="/api/v1/auth/admin", tags=["admin"])
 
@@ -15,7 +15,8 @@ admin_routes = APIRouter(prefix="/api/v1/auth/admin", tags=["admin"])
 @admin_routes.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
 
-    user_collection = db["users"]
+    user_collection: Collection = db["users"]
+    
 
     user_dict = user_credential.model_dump()
     user_dict["email"] = user_dict["email"].lower()

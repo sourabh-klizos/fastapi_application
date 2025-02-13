@@ -53,3 +53,9 @@ class PaginatedUserResponseModel(BaseModel):
     has_previous: Optional[bool] = None
     has_next: Optional[bool] = None
     data: List[UserResponseModel]
+
+
+
+class ReasonRequestModel(BaseModel):
+    reason: str
+

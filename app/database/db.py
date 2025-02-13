@@ -3,7 +3,9 @@ from fastapi import FastAPI, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor import motor_asyncio
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # client = motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017/")
 
@@ -18,6 +20,8 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 DB_NAME = os.getenv("DB_NAME")
+
+
 
 
 async def get_db():
