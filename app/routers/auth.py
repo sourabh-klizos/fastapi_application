@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional
+from app.utils.is_valid_object_id import PyObjectId
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from datetime import datetime
 from bson import ObjectId
-
 from app.models.user import (
     UserRequestModel,
     UserLoginModel,
@@ -143,7 +143,7 @@ async def retrive_active_users(
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(
-    user_id: str, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
 ):
     user_collection: Collection = db["users"]
 
@@ -163,7 +163,7 @@ async def get_user_detail(
 )
 async def get_user_detail(
     data: UserEditReqModel,
-    user_id: str,
+    user_id: PyObjectId,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
@@ -221,7 +221,7 @@ async def get_user_detail(
 
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
-    user_id: str,
+    user_id: PyObjectId,
     reason: ReasonRequestModel,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),

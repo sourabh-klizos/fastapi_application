@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, HTTPException, Depends, Security, Query
-
+from app.utils.is_valid_object_id import PyObjectId
 from fastapi.security import OAuth2PasswordBearer
 from app.utils.get_current_logged_in_user import get_current_user_id
 
@@ -93,7 +93,7 @@ async def bulk_delete(
 
 @trash_routes.put("/restore/{user_id}", status_code=status.HTTP_200_OK)
 async def restore_user(
-    user_id: str, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
@@ -144,7 +144,7 @@ async def restore_user(
     "/permanent/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def permanent_delete(
-    user_id: str, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
@@ -166,6 +166,3 @@ async def permanent_delete(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Internal server error",
     )
-
-
-
