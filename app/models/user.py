@@ -55,7 +55,5 @@ class PaginatedUserResponseModel(BaseModel):
     data: List[UserResponseModel]
 
 
-
 class ReasonRequestModel(BaseModel):
     reason: str
-

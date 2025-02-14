@@ -16,7 +16,6 @@ admin_routes = APIRouter(prefix="/api/v1/auth/admin", tags=["admin"])
 async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
 
     user_collection: Collection = db["users"]
-    
 
     user_dict = user_credential.model_dump()
     user_dict["email"] = user_dict["email"].lower()

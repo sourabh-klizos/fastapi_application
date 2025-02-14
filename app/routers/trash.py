@@ -80,7 +80,7 @@ async def bulk_delete(
                     "user_id": str(id),
                     "deleted_by": str(current_user_id),
                     "deleted_at": datetime.now(),
-                    "reason" : reason
+                    "reason": reason,
                 }
             )
 
@@ -166,3 +166,6 @@ async def permanent_delete(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Internal server error",
     )
+
+
+

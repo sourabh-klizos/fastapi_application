@@ -22,6 +22,14 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 DB_NAME = os.getenv("DB_NAME")
 
 
+# async def get_production_db():
+#     client = AsyncIOMotorClient("mongodb://localhost:27017/")
+#     db = client["production_db"]
+#     return db
+
+# # Dependency to get the database
+# async def get_db():
+#     return await get_production_db()
 
 
 async def get_db():

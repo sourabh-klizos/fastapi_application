@@ -21,8 +21,5 @@ class BulkTrashIds(BaseModel):
     reason: str
 
 
-
-
-
 #     await getter
 # asyncio.exceptions.CancelledError

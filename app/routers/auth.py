@@ -10,7 +10,7 @@ from app.models.user import (
     UserEditReqModel,
     UserResponseModel,
     PaginatedUserResponseModel,
-    ReasonRequestModel
+    ReasonRequestModel,
 )
 from app.utils.generate_username import generate_available_username
 
@@ -30,10 +30,13 @@ auth_routes = APIRouter(prefix="/api/v1/auth", tags=["user"])
 
 @auth_routes.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
+    print("from test ---------")
 
     user_collection: Collection = db["users"]
 
     user_dict = user_credential.model_dump()
+
+    print(user_dict)
     user_dict["email"] = user_dict["email"].lower()
     user_dict["username"] = user_dict["username"].lower()
 
@@ -43,14 +46,14 @@ async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
     username_already_exists = await user_collection.find_one({"username": username})
     if email_already_exists:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail="User already exists with this email",
         )
 
     if username_already_exists:
         choose_username = await generate_available_username(username, db)
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail={
                 "message": "User already exists with this username",
                 "suggested_usernames": choose_username,
@@ -221,7 +224,7 @@ async def soft_delete_user(
     user_id: str,
     reason: ReasonRequestModel,
     current_user=Depends(get_current_user_id),
-    db=Depends(get_db)
+    db=Depends(get_db),
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
@@ -254,7 +257,7 @@ async def soft_delete_user(
                 "user_id": user_id,
                 "deleted_by": current_user,
                 "deleted_at": datetime.now(),
-                "reason": reason
+                "reason": reason,
             }
 
             await trash_collection.insert_one(trash)
