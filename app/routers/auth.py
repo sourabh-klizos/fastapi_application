@@ -30,13 +30,11 @@ auth_routes = APIRouter(prefix="/api/v1/auth", tags=["user"])
 
 @auth_routes.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
-    print("from test ---------")
 
     user_collection: Collection = db["users"]
 
     user_dict = user_credential.model_dump()
 
-    print(user_dict)
     user_dict["email"] = user_dict["email"].lower()
     user_dict["username"] = user_dict["username"].lower()
 

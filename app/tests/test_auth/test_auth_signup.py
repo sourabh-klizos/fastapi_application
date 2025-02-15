@@ -6,41 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from pymongo.collection import Collection
-
-# from app.tests.config import get_test_db, client
-
-
-# MongoDB test config
-TEST_DATABASE_URL = "mongodb://localhost:27017/"
-TEST_DB_NAME = "fastapi_test_db"
-
-
-# Test version of get_db using AsyncIOMotorClient
-@pytest_asyncio.fixture
-async def get_test_db():
-    client = AsyncIOMotorClient(TEST_DATABASE_URL)
-    db = client[TEST_DB_NAME]
-    try:
-        yield db
-    finally:
-        client.close()
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def override_get_db(get_test_db):
-    """Fixture to override FastAPI's get_db dependency for all tests."""
-    test_db = get_test_db
-    app.dependency_overrides[get_db] = lambda: test_db
-    yield
-    app.dependency_overrides.clear()
-
-
-@pytest_asyncio.fixture
-async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app), base_url="http://test"
-    ) as client:
-        yield client
+import os
 
 
 @pytest.mark.asyncio
@@ -56,64 +22,46 @@ async def test_signup_success(client, get_test_db):
 
     assert response.status_code == 201
     db = get_test_db
-
-    user_collection: Collection = db["users"]
-    await user_collection.find_one_and_delete({"email": user_data["email"]})
     response_data = response.json()
     assert response_data["message"] == "User account created successfully."
 
+    user_collection: Collection = db["users"]
+    await user_collection.find_one_and_delete({"email": user_data["email"]})
+
 
 @pytest.mark.asyncio
-async def test_signup_duplicate_username(client, get_test_db):
-    """Test signup with a duplicate username."""
-    user_data = {
-        "username": "tesdsstuser",
-        "email": "testusse232rs1@example.com",
-        "password": "securepassword123",
-    }
+async def test_signup_duplicate_username(client, get_test_db, test_user):
 
     user_data_duplicate_username = {
-        "username": "tesdsstuser",
+        "username": test_user["username"],
         "email": "testudsqser@example.com",
         "password": "securepassword123",
     }
-
-    response = await client.post("/api/v1/auth/signup", json=user_data)
-    assert response.status_code == 201
 
     response = await client.post(
         "/api/v1/auth/signup", json=user_data_duplicate_username
     )
     assert response.status_code == 409
-
-    db = get_test_db
-    user_collection: Collection = db["users"]
-    await user_collection.find_one_and_delete({"username": user_data["username"]})
+    response_data = response.json()
+    assert (
+        response_data["detail"]["message"] == "User already exists with this username"
+    )
 
 
 @pytest.mark.asyncio
-async def test_signup_duplicate_email(client, get_test_db):
+async def test_signup_duplicate_email(client, get_test_db, test_user):
     """Test signup with a duplicate email."""
-    user_data1 = {
-        "username": "testuser1",
-        "email": "testuser@example.com",
-        "password": "securepassword123",
-    }
+
     user_data2 = {
         "username": "testuser2",
-        "email": "testuser@example.com",
+        "email": test_user["email"],
         "password": "securepassword123",
     }
-
-    response = await client.post("/api/v1/auth/signup", json=user_data1)
-    assert response.status_code == 201
 
     response = await client.post("/api/v1/auth/signup", json=user_data2)
     assert response.status_code == 409
-
-    db = get_test_db
-    user_collection: Collection = db["users"]
-    await user_collection.find_one_and_delete({"email": user_data1["email"]})
+    response_data = response.json()
+    assert response_data["detail"] == "User already exists with this email"
 
 
 @pytest.mark.asyncio
@@ -138,3 +86,25 @@ async def test_signup_invalid_data(client, get_test_db):
     }
     response = await client.post("/api/v1/auth/signup", json=user_data)
     assert response.status_code == 422
+
+
+
+@pytest.mark.asyncio
+async def test_admin_signup(client, get_test_db):
+    user_data = {
+        "email": "bssqews@mail.com",
+        "password": "12wsess3",
+        "username": "aswwewswsdss8",
+    }
+
+    response = await client.post("/api/v1/auth/admin/signup", json=user_data)
+
+    assert response.status_code == 201
+    db = get_test_db
+    response_data = response.json()
+    assert response_data["message"] == "User account created successfully."
+
+    user_collection: Collection = db["users"]
+    await user_collection.find_one_and_delete({"email": user_data["email"]})
+
+    
