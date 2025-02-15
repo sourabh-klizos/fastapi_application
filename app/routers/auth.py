@@ -66,6 +66,7 @@ async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
 
     await user_collection.insert_one(user_dict)
 
+    print("account created ---------------------------------successfully")
     return {"message": "User account created successfully."}
 
 
@@ -113,8 +114,12 @@ async def retrive_active_users(
     q: Optional[str] = Query(None),
     db=Depends(get_db),
 ):
-
+    
     user_collection: Collection = db["users"]
+    
+    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})    
+    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=True)
+
     query = {"is_deleted": False}
     exclude_fields = {"password": 0}
 
@@ -145,16 +150,26 @@ async def get_user_detail(
 ):
     user_collection: Collection = db["users"]
 
-    user = await user_collection.find_one(
-        {"_id": ObjectId(user_id), "is_deleted": False}, {"password": 0}
-    )
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
+    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
+  
+    if current_user == user_id or is_admin_user:
+        user = await user_collection.find_one(
+            {"_id": ObjectId(user_id), "is_deleted": False}, {"password": 0}
         )
-    user = await convert_objectid(user)
-    return user
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        user = await convert_objectid(user)
+        return user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You dont have access to perfome this action",
+        )
 
+    
 
 @auth_routes.put(
     "/users/{user_id}", response_model=UserResponseModel, status_code=status.HTTP_200_OK

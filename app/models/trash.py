@@ -11,6 +11,7 @@ class TrashResponseModel(BaseModel):
 
 
 class PaginatedTrashResponseModel(BaseModel):
+    total: int
     has_previous: Optional[bool] = None
     has_next: Optional[bool] = None
     data: List[TrashResponseModel]

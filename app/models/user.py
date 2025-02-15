@@ -50,6 +50,7 @@ class UserResponseModel(BaseModel):
 
 
 class PaginatedUserResponseModel(BaseModel):
+    total: int
     has_previous: Optional[bool] = None
     has_next: Optional[bool] = None
     data: List[UserResponseModel]
