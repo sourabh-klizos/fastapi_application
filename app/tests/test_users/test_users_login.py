@@ -318,7 +318,6 @@ async def test_update_other_user_detail_without_admin_previllage(client, get_tes
 async def test_delete_user(client, get_test_db, get_current_user_token, test_user):
     token = get_current_user_token['access_token']
 
-
     headers = {"Authorization": f"Bearer {token}"}
     
     db = get_test_db
@@ -327,6 +326,6 @@ async def test_delete_user(client, get_test_db, get_current_user_token, test_use
     user_id = await user_collection.find_one({"email":test_user['email']}, {"_id" : 1})
     str_user_id = str(user_id['_id'])
     print(user_id)
-    response = await client.delete(f"/api/v1/auth/users/{str_user_id}", headers=headers, json=data)
+    response = await client.delete(f"/api/v1/auth/users/{str_user_id}", headers=headers,  params=data)
 
     assert response.status_code == 204

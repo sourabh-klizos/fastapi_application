@@ -235,15 +235,17 @@ async def get_user_detail(
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
     user_id: PyObjectId,
-    reason: ReasonRequestModel,
+    # reason: ReasonRequestModel,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
+    reason:str = Query()
+
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
-
-    reason = reason.model_dump()
-    reason = reason.get("reason")
+    print(reason, "=========================")
+    # reason = reason.model_dump()
+    # reason = reason.get("reason")
 
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
     is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
