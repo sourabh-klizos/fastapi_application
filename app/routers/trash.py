@@ -109,7 +109,7 @@ async def restore_user(
 
     is_admin = await is_logged_in_and_admin(logged_in_user)
 
-    user_to_restore = await user_collection.find_one({"_id": ObjectId(current_user)})
+    user_to_restore = await user_collection.find_one({"_id": ObjectId(user_id)})
 
     print(user_to_restore)
 

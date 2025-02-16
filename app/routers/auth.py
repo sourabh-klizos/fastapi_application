@@ -243,7 +243,7 @@ async def soft_delete_user(
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
-    print(reason, "=========================")
+    # print(reason, "=========================")
     # reason = reason.model_dump()
     # reason = reason.get("reason")
 
@@ -276,6 +276,8 @@ async def soft_delete_user(
             }
 
             await trash_collection.insert_one(trash)
+            print("created  trash ------------------------------=========================" 
+                  )
             return
 
         else:
