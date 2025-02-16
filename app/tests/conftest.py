@@ -133,11 +133,16 @@ async def create_bulk_test_users(client: AsyncClient, get_test_db: AsyncIOMotorC
         assert response_data.get("message") == "User account created successfully."
 
     yield payloads
-
-
+    
     db = get_test_db
-    users_collection: Collection = db['users']
-    users = await  users_collection.delete_many({})
+    user_collection: Collection = db["users"]
+    deleted = await user_collection.delete_many({})
+    # usernames =  [user['username'] for user in payloads]
+    # print(username, " -----------------------------------------username")
+    # db = get_test_db
+    # users_collection: Collection = db['users']
+    # for username in usernames:
+    #     users = await  users_collection.delete_one({"username" : username})
    
 
 
@@ -146,7 +151,7 @@ async def clean_up_test_users(client: AsyncClient, get_test_db: AsyncIOMotorClie
 
     db = get_test_db
     user_collection: Collection = db["users"]
-    deleted = await user_collection.delete_many({})
+    # deleted = await user_collection.delete_many({})
 
 
 

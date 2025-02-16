@@ -37,7 +37,9 @@ async def view_trash(
     trash_collection: Collection = db["trash"]
     # try:
     logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
+    print(logged_in_user, " ========================================")
     is_admin = await is_logged_in_and_admin(logged_in_user)
+    print(is_admin, " ===============================================")
 
     response = await paginate_query(
         collection=trash_collection,
@@ -66,8 +68,14 @@ async def bulk_delete(
     reason = trash_ids.get("reason")
     alredy_deleted_user = list()
     deleted_users = list()
+    user_ids = trash_ids["ids"]
+    if not user_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="please provide user's id"
+        )
 
-    trash_id_list = await convert_str_object_id(trash_ids["ids"])
+    trash_id_list = await convert_str_object_id(user_ids)
     for id in trash_id_list:
         user = await user_collection.find_one({"_id": id})
         if user and not user["is_deleted"]:
@@ -102,6 +110,9 @@ async def restore_user(
     is_admin = await is_logged_in_and_admin(logged_in_user)
 
     user_to_restore = await user_collection.find_one({"_id": ObjectId(current_user)})
+
+    print(user_to_restore)
+
     if not user_to_restore:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"

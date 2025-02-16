@@ -18,13 +18,8 @@ from app.tests.test_utils.get_users_data import generate_fake_users
 
 
 
-
-
-
-
-
 @pytest.mark.asyncio
-async def test_get_users_with_regulat_user(client:AsyncClient , get_current_user_token: Dict[str, str], get_test_db):
+async def test_get_users_with_regular_user(client:AsyncClient , get_current_user_token: Dict[str, str], get_test_db):
     tokens = get_current_user_token
     headers = {
         "Authorization" : f"Bearer {tokens["access_token"]}"
@@ -117,10 +112,6 @@ async def test_get_current_user_detail(client, test_user, get_test_db,get_curren
     assert response_data['email'] == test_user['email']
 
 
-
-
-
-
 @pytest.mark.asyncio
 async def test_access_other_user(client, test_user, get_test_db,get_current_user_token):
     tokens = get_current_user_token
@@ -146,9 +137,6 @@ async def test_access_other_user(client, test_user, get_test_db,get_current_user
 
     assert response.status_code == 403
     response_data = response.json()
-
-
-
 
 
 
@@ -180,11 +168,6 @@ async def test_access_other_user(client, test_user, get_test_db,get_admin_user_t
 
 
 
-
-
-
-
-
 @pytest.mark.asyncio
 async def test_get_current_user_detail(client, test_user, get_test_db,get_current_user_token):
     tokens = get_current_user_token
@@ -201,11 +184,6 @@ async def test_get_current_user_detail(client, test_user, get_test_db,get_curren
     assert response.status_code == 200
     response_data = response.json()
     assert response_data['email'] == test_user['email']
-
-
-
-
-
 
 
 
@@ -233,16 +211,6 @@ async def test_update_user_detail_success(client, get_test_db, get_admin_user_to
 
     assert response_data["email"] == data["email"]
     assert response_data["username"] == data["username"] 
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -302,24 +270,12 @@ async def test_update_other_user_detail_without_admin_previllage(client, get_tes
    
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 @pytest.mark.asyncio
 async def test_delete_user(client, get_test_db, get_current_user_token, test_user):
     token = get_current_user_token['access_token']
 
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     db = get_test_db
     user_collection: Collection = db["users"]
     data = { "reason" :"testing"  }
