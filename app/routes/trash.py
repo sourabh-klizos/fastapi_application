@@ -1,18 +1,17 @@
-from fastapi import APIRouter, status, HTTPException, Depends, Security, Query
+from fastapi import APIRouter, status, HTTPException, Depends, Query
 from app.utils.is_valid_object_id import PyObjectId
-from fastapi.security import OAuth2PasswordBearer
+
 from app.utils.get_current_logged_in_user import get_current_user_id
 
-# from app.database.db import user_collection, trash_collection
 from bson import ObjectId
 from datetime import datetime
-from app.utils.convert_bson_id_str import convert_objectids_list, convert_objectid
+from app.utils.convert_bson_id_str import  convert_objectid
 from app.models.trash import (
     TrashResponseModel,
     PaginatedTrashResponseModel,
     BulkTrashIds,
 )
-from typing import List, Optional
+from typing import  Optional
 from app.utils.paginator import paginate_query
 from app.utils.str_to_bson import convert_str_object_id
 from app.database.db import get_db
@@ -37,9 +36,8 @@ async def view_trash(
     trash_collection: Collection = db["trash"]
     # try:
     logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
-    print(logged_in_user, " ========================================")
+
     is_admin = await is_logged_in_and_admin(logged_in_user)
-    print(is_admin, " ===============================================")
 
     response = await paginate_query(
         collection=trash_collection,
@@ -110,7 +108,7 @@ async def restore_user(
 
     user_to_restore = await user_collection.find_one({"_id": ObjectId(user_id)})
 
-    print(user_to_restore)
+ 
 
     if not user_to_restore:
         raise HTTPException(

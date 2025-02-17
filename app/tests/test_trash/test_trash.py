@@ -1,7 +1,4 @@
 import pytest
-from app.main import app
-from app.database.db import get_db
-from motor.motor_asyncio import AsyncIOMotorClient
 
 from httpx import AsyncClient
 from pymongo.collection import Collection

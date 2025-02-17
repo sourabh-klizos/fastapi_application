@@ -1,18 +1,12 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database.db import get_db
 from motor.motor_asyncio import AsyncIOMotorClient
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from pymongo.collection import Collection
-import os
-from typing import Dict
+from httpx import AsyncClient
+from typing import Dict, Any
 
 
 @pytest.mark.asyncio
 async def test_login_success(
-    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: dict
+    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: Dict[str,Any]
 ) -> None:
 
     login_payload = {"email": test_user["email"], "password": test_user["password"]}

@@ -41,3 +41,4 @@ typing_extensions==4.12.2
 uvicorn==0.34.0
 pytest-asyncio
 faker==36.1.1
+flake8 7.1.2

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
@@ -21,6 +21,3 @@ class BulkTrashIds(BaseModel):
     ids: List[str]
     reason: str
 
-
-#     await getter
-# asyncio.exceptions.CancelledError
