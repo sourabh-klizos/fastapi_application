@@ -20,4 +20,3 @@ class PaginatedTrashResponseModel(BaseModel):
 class BulkTrashIds(BaseModel):
     ids: List[str]
     reason: str
-

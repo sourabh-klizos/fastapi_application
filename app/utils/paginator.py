@@ -1,5 +1,4 @@
 from typing import List, Dict, Any
-from pymongo.cursor import Cursor
 from pymongo.collection import Collection
 from app.utils.convert_bson_id_str import convert_objectids_list
 

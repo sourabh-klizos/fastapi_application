@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 @pytest.mark.asyncio
 async def test_login_success(
-    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: Dict[str,Any]
+    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: Dict[str, Any]
 ) -> None:
 
     login_payload = {"email": test_user["email"], "password": test_user["password"]}

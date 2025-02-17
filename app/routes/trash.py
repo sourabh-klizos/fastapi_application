@@ -5,13 +5,13 @@ from app.utils.get_current_logged_in_user import get_current_user_id
 
 from bson import ObjectId
 from datetime import datetime
-from app.utils.convert_bson_id_str import  convert_objectid
+from app.utils.convert_bson_id_str import convert_objectid
 from app.models.trash import (
     TrashResponseModel,
     PaginatedTrashResponseModel,
     BulkTrashIds,
 )
-from typing import  Optional
+from typing import Optional
 from app.utils.paginator import paginate_query
 from app.utils.str_to_bson import convert_str_object_id
 from app.database.db import get_db
@@ -107,8 +107,6 @@ async def restore_user(
     is_admin = await is_logged_in_and_admin(logged_in_user)
 
     user_to_restore = await user_collection.find_one({"_id": ObjectId(user_id)})
-
- 
 
     if not user_to_restore:
         raise HTTPException(

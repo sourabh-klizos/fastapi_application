@@ -1,12 +1,8 @@
 import pytest
-
 from httpx import AsyncClient
 from pymongo.collection import Collection
-
 from typing import Dict
 from app.tests.test_utils.get_users_data import generate_fake_users
-
-# from app.tests.conftest import  create_bulk_test_users, get_admin_user_token, test_admin_user
 
 
 @pytest.mark.asyncio

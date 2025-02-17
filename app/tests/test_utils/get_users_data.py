@@ -1,6 +1,4 @@
 from faker import Faker
-import random
-from datetime import datetime
 
 
 async def generate_fake_users(num_users=5):
@@ -16,10 +14,7 @@ async def generate_fake_users(num_users=5):
                 "username": username,
                 "password": password,
                 "email": email,
-                # "created_at": datetime.now(),
-                # "role": "regular",
-                # "updated_at":None,
-                # "is_deleted":False
+            
             }
         )
 

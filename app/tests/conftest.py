@@ -125,4 +125,3 @@ async def create_bulk_test_users(client: AsyncClient, get_test_db: AsyncIOMotorC
     # users_collection: Collection = db['users']
     # for username in usernames:
     #     users = await  users_collection.delete_one({"username" : username})
-

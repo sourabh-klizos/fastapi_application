@@ -10,7 +10,6 @@ from app.models.user import (
     UserEditReqModel,
     UserResponseModel,
     PaginatedUserResponseModel,
-
 )
 from app.utils.generate_username import generate_available_username
 from app.utils.jwt_handler import create_access_token, create_refresh_token

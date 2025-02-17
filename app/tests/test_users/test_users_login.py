@@ -1,16 +1,8 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database.db import get_db
-from motor.motor_asyncio import AsyncIOMotorClient
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from pymongo.collection import Collection
-import os
-from typing import Dict
-from app.tests.test_utils.get_users_data import generate_fake_users
 
-# from app.tests.conftest import  create_bulk_test_users,, get_admin_user_token, test_admin_user
+from httpx import AsyncClient
+from pymongo.collection import Collection
+from typing import Dict
 
 
 @pytest.mark.asyncio
