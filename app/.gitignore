@@ -1,4 +1,5 @@
 venv/
 *.pyc
 .env
+../.env
 # git rm -r --cached .env
