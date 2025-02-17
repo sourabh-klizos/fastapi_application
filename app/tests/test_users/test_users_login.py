@@ -10,7 +10,7 @@ import os
 from typing import Dict
 from app.tests.test_utils.get_users_data import generate_fake_users
 
-# from app.tests.conftest import  create_bulk_test_users, clean_up_test_users , get_admin_user_token, test_admin_user
+# from app.tests.conftest import  create_bulk_test_users,, get_admin_user_token, test_admin_user
 
 
 @pytest.mark.asyncio
@@ -188,8 +188,6 @@ async def test_update_user_detail_success(
 
     user_id = await user_collection.find_one({"email": test_user["email"]}, {"_id": 1})
     str_user_id = str(user_id["_id"])
-    print(str_user_id)
-
     response = await client.put(
         f"/api/v1/auth/users/{str_user_id}", headers=headers, json=data
     )
@@ -272,7 +270,7 @@ async def test_delete_user(client, get_test_db, get_current_user_token, test_use
     data = {"reason": "testing"}
     user_id = await user_collection.find_one({"email": test_user["email"]}, {"_id": 1})
     str_user_id = str(user_id["_id"])
-    print(user_id)
+
     response = await client.delete(
         f"/api/v1/auth/users/{str_user_id}", headers=headers, params=data
     )

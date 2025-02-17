@@ -9,7 +9,7 @@ from pymongo.collection import Collection
 from typing import Dict
 from app.tests.test_utils.get_users_data import generate_fake_users
 
-# from app.tests.conftest import  create_bulk_test_users, clean_up_test_users , get_admin_user_token, test_admin_user
+# from app.tests.conftest import  create_bulk_test_users, get_admin_user_token, test_admin_user
 
 
 @pytest.mark.asyncio
@@ -79,7 +79,6 @@ async def test_delete_bulk_users_admin(
 
     email_list = [user_details["email"] for user_details in data_of_users]
 
-    print(email_list)
     users_cursor = user_collection.find({"email": {"$in": email_list}})
     users_list = await users_cursor.to_list()
 

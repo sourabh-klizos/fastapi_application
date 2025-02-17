@@ -1,5 +1,5 @@
 from fastapi import FastAPI, status
-from app.routers import (
+from app.routes import (
     auth,
     get_access_by_refresh_token as obtain_access_router,
     admin,
