@@ -73,11 +73,10 @@ The request body should contain the following JSON data:
 }
 ```
 
-
+##
 ### This API is excatly same as Signup  same response and request follows
-```json
-POST http://localhost:8000/api/v1/auth/admin/signup
-```
+
+`POST http://localhost:8000/api/v1/auth/admin/signup`
 
 
 
@@ -128,7 +127,7 @@ response with code 200
 
 ```
 
-```
+```json
 http://localhost:8000/api/v1/auth/users?q=sourabh
 You can also perfome search via username  where sourabh is a user
 
@@ -144,8 +143,7 @@ jump to another page = page=10
 ## error if you don't provide right credentials
 
 ```
-401
-Unauthorized
+401 Unauthorized
 {
     "detail": "Not a valid token "
 }
@@ -178,9 +176,9 @@ This endpoint retrieves the details of a specific user. The user must either be 
 
 #### Example Request:
 
+`GET http://localhost:8000/api/v1/auth/users/67a99cb53312d3bde5ccbd67`
+`Authorization: Bearer <your-token>`
 ```json
-GET http://localhost:8000/api/v1/auth/users/67a99cb53312d3bde5ccbd67
-Authorization: Bearer <your-token>
 
 {
     "id": "67a99cb53312d3bde5ccbd67",
@@ -193,23 +191,21 @@ Authorization: Bearer <your-token>
     "updated_by": null
 }
 
-status code 200
-
 ```
-`If the user is neither an admin nor the owner of the account, access will be denied.`
-```json
+`status code 200`
 
-status code 403 Forbidden
+`If the user is neither an admin nor the owner of the account, access will be denied.`
+
+`status code 403 Forbidden`
+```json
 {
     "detail": "You don't have access to perform this action"
 }
 ```
 
 `If no valid Bearer token is provided`
-
+`status code 401 Unauthorized`
 ```json
-
-status code 401 Unauthorized
 {
     "detail": "Not a valid token "
 }
@@ -288,10 +284,8 @@ You must include either or both `username` or `email`, and neither can be empty.
   "email": "test@1.dom"
 }
 ```
-
+`if not admin or owner of account will get error status code 403`
 ```json
-if not admin or owner of account will get error
-status code 403
 {
   "detail": "You don't have access to perform this action"
 }
@@ -354,13 +348,11 @@ This endpoint allows you to exchange a valid **refresh token** for a new **acces
 
 #### Request Body
 The request must include the **refresh token** in the body.
-
+`status code 200`
 ```json
 {
   "refresh_token": "<your-refresh-token>"
 }
-
-status code 200
 
 ```
 
@@ -443,17 +435,19 @@ The body should include:
 
 Example request body:
 
-```json
-payload = {
-  "ids": [
-    "67a990a9dc65a0145ee7397d",
-    "67a990dedc65a0145ee7397e",
-    "67a9939fdc65a0145ee7397f",
-    "67a99cb23312d3bde5ccbd66"
-  ],
-  "reason": "because I am admin"
-}
+```bash
+    payload = {
+    "ids": [
+        "67a990a9dc65a0145ee7397d",
+        "67a990dedc65a0145ee7397e",
+        "67a9939fdc65a0145ee7397f",
+        "67a99cb23312d3bde5ccbd66"
+    ],
+    "reason": "because I am admin"
+    }
 
+ ```
+```bash
 if user was alredy deleted it with show in alredy_deleted_user,  if deleted by this api call will show in deleted_now.
 response with status 200 
 {
