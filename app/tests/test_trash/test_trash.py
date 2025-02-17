@@ -9,8 +9,8 @@ from app.tests.test_utils.get_users_data import generate_fake_users
 async def test_get_trash_with_admin_user(
     client: AsyncClient, get_admin_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {str(tokens["access_token"])}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {str(tokens)}"}
     response = await client.get("/api/v1/trash/", headers=headers)
     assert response.status_code == 200
 
