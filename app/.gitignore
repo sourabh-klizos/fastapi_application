@@ -3,3 +3,5 @@ venv/
 # .env
 ../.env
 # git rm -r --cached .env
+
+git rm --cached .env
