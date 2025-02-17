@@ -71,8 +71,7 @@ async def bulk_delete(
     user_ids = trash_ids["ids"]
     if not user_ids:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="please provide user's id"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="please provide user's id"
         )
 
     trash_id_list = await convert_str_object_id(user_ids)

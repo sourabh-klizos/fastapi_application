@@ -88,7 +88,6 @@ async def test_signup_invalid_data(client, get_test_db):
     assert response.status_code == 422
 
 
-
 @pytest.mark.asyncio
 async def test_admin_signup(client, get_test_db):
     user_data = {
@@ -106,5 +105,3 @@ async def test_admin_signup(client, get_test_db):
 
     user_collection: Collection = db["users"]
     await user_collection.find_one_and_delete({"email": user_data["email"]})
-
-    

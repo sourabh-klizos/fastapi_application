@@ -17,12 +17,11 @@ async def check_has_pre_next(
 
     has_next = True if current_count < len(total_number_of_documents) else None
     has_pre = True if current_page > 1 else None
- 
+
     result = {
-       
         "has_previous": has_pre,
         "has_next": has_next,
-        "total" : len(total_number_of_documents)
+        "total": len(total_number_of_documents),
     }
 
     return result
@@ -43,7 +42,6 @@ async def paginate_query(
         collection.find(query, exclude_fields).skip(skip).limit(per_page)
     )
     document_list = await document_cursor_obj.to_list(length=per_page)
-    
 
     data = await convert_objectids_list(document_list)
     has_next_or_prev = await check_has_pre_next(

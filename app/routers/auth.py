@@ -114,10 +114,10 @@ async def retrive_active_users(
     q: Optional[str] = Query(None),
     db=Depends(get_db),
 ):
-    
+
     user_collection: Collection = db["users"]
-    
-    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})    
+
+    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
     is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=True)
 
     query = {"is_deleted": False}
@@ -152,7 +152,7 @@ async def get_user_detail(
 
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
     is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
-  
+
     if current_user == user_id or is_admin_user:
         user = await user_collection.find_one(
             {"_id": ObjectId(user_id), "is_deleted": False}, {"password": 0}
@@ -169,7 +169,6 @@ async def get_user_detail(
             detail="You dont have access to perfome this action",
         )
 
-    
 
 @auth_routes.put(
     "/users/{user_id}", response_model=UserResponseModel, status_code=status.HTTP_200_OK
@@ -238,8 +237,7 @@ async def soft_delete_user(
     # reason: ReasonRequestModel,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
-    reason:str = Query()
-
+    reason: str = Query(),
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
@@ -276,8 +274,9 @@ async def soft_delete_user(
             }
 
             await trash_collection.insert_one(trash)
-            print("created  trash ------------------------------=========================" 
-                  )
+            print(
+                "created  trash ------------------------------========================="
+            )
             return
 
         else:
