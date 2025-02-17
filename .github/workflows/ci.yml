@@ -39,7 +39,7 @@ jobs:
       TEST_DB_NAME_DOCKER: fastapi_test_db
 
       # If you use GitHub secrets for MONGODB_URI_SECRET, ensure it's set properly
-      MONGODB_URI: ${{ secrets.MONGODB_URI_SECRET }}
+      # MONGODB_URI: ${{ secrets.MONGODB_URI_SECRET }}
 
     steps:
     - name: Checkout repository
