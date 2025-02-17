@@ -6,10 +6,15 @@ from typing import Dict, Any
 
 @pytest.mark.asyncio
 async def test_login_success(
-    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: Dict[str, Any]
+    client: AsyncClient,
+    get_test_db: AsyncIOMotorClient,
+    test_user: Dict[str, Any],
 ) -> None:
 
-    login_payload = {"email": test_user["email"], "password": test_user["password"]}
+    login_payload = {
+        "email": test_user["email"],
+        "password": test_user["password"],
+    }
     login_response = await client.post("/api/v1/auth/login", json=login_payload)
     assert login_response.status_code == 200
     json_data = login_response.json()
@@ -18,7 +23,9 @@ async def test_login_success(
 
 @pytest.mark.asyncio
 async def test_login_with_wrong_credentials(
-    client: AsyncClient, get_test_db: AsyncIOMotorClient, test_user: Dict[str, str]
+    client: AsyncClient,
+    get_test_db: AsyncIOMotorClient,
+    test_user: Dict[str, str],
 ):
 
     login_payload = {

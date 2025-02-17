@@ -22,7 +22,8 @@ async def get_access_token(refresh_token: RefreshTokenReqModel, db=Depends(get_d
     )
     if not decoded_refresh:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Not a valid refresh token"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not a valid refresh token",
         )
 
     user_id = decoded_refresh["user_id"]

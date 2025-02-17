@@ -44,7 +44,10 @@ async def paginate_query(
 
     data = await convert_objectids_list(document_list)
     has_next_or_prev = await check_has_pre_next(
-        query=query, collection=collection, content_per_page=per_page, current_page=page
+        query=query,
+        collection=collection,
+        content_per_page=per_page,
+        current_page=page,
     )
     response = {**has_next_or_prev, "data": data}
     return response

@@ -45,7 +45,12 @@ async def create_refresh_token(user_id: str, db, hours: int = None) -> dict:
     refresh_token = jwt.encode(payload_to_encode, SECRET_KEY, ALGORITHM)
 
     condition = {"user_id": user_id}
-    update = {"$set": {"refresh_token": refresh_token, "jti": payload_to_encode["jti"]}}
+    update = {
+        "$set": {
+            "refresh_token": refresh_token,
+            "jti": payload_to_encode["jti"],
+        }
+    }
 
     await refresh_token_collection.find_one_and_update(condition, update, upsert=True)
 

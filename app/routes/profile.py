@@ -47,10 +47,14 @@ async def upolad_profile_picture(
     image_path = os.path.join(upload_folder, unique_filename)
 
     await user_collection.update_one(
-        {"_id": ObjectId(current_user)}, {"$set": {"profile_image": unique_filename}}
+        {"_id": ObjectId(current_user)},
+        {"$set": {"profile_image": unique_filename}},
     )
 
     with open(image_path, "wb") as f:
         f.write(image_data)
 
-    return {"message": "File uploaded successfully!", "filename": unique_filename}
+    return {
+        "message": "File uploaded successfully!",
+        "filename": unique_filename,
+    }

@@ -100,7 +100,9 @@ async def user_login(user_credential: UserLoginModel, db=Depends(get_db)):
 
 
 @auth_routes.get(
-    "/users", response_model=PaginatedUserResponseModel, status_code=status.HTTP_200_OK
+    "/users",
+    response_model=PaginatedUserResponseModel,
+    status_code=status.HTTP_200_OK,
 )
 async def retrive_active_users(
     current_user=Depends(get_current_user_id),
@@ -141,7 +143,9 @@ async def retrive_active_users(
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(
-    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId,
+    current_user=Depends(get_current_user_id),
+    db=Depends(get_db),
 ):
     user_collection: Collection = db["users"]
 
@@ -166,7 +170,9 @@ async def get_user_detail(
 
 
 @auth_routes.put(
-    "/users/{user_id}", response_model=UserResponseModel, status_code=status.HTTP_200_OK
+    "/users/{user_id}",
+    response_model=UserResponseModel,
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_detail(
     data: UserEditReqModel,
@@ -186,7 +192,8 @@ async def get_user_detail(
 
         if email_alredy_exits:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, detail="Email Alredy Exists"
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email Alredy Exists",
             )
 
         data_to_update["email"] = dict_data["email"].lower()
@@ -197,7 +204,8 @@ async def get_user_detail(
         )
         if username_alredy_exists:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, detail="Username Alredy Exists"
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username Alredy Exists",
             )
         data_to_update["username"] = dict_data["username"].lower()
 
@@ -244,13 +252,15 @@ async def soft_delete_user(
 
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User Doesn't Exists"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User Doesn't Exists",
             )
 
         if user:
             if user.get("is_deleted"):
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Alredy Deleted"
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Alredy Deleted",
                 )
 
             condition = {"_id": ObjectId(user_id)}
@@ -269,7 +279,8 @@ async def soft_delete_user(
 
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User Doesn't Exists"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User Doesn't Exists",
             )
     else:
         raise HTTPException(

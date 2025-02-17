@@ -24,7 +24,9 @@ trash_routes = APIRouter(prefix="/api/v1/trash", tags=["trash"])
 
 
 @trash_routes.get(
-    "/", response_model=PaginatedTrashResponseModel, status_code=status.HTTP_200_OK
+    "/",
+    response_model=PaginatedTrashResponseModel,
+    status_code=status.HTTP_200_OK,
 )
 async def view_trash(
     user_id=Depends(get_current_user_id),
@@ -69,7 +71,8 @@ async def bulk_delete(
     user_ids = trash_ids["ids"]
     if not user_ids:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="please provide user's id"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="please provide user's id",
         )
 
     trash_id_list = await convert_str_object_id(user_ids)
@@ -93,12 +96,17 @@ async def bulk_delete(
         else:
             alredy_deleted_user.append(str(id))
 
-    return {"alredy_deleted_user": alredy_deleted_user, "deleted_now": deleted_users}
+    return {
+        "alredy_deleted_user": alredy_deleted_user,
+        "deleted_now": deleted_users,
+    }
 
 
 @trash_routes.put("/restore/{user_id}", status_code=status.HTTP_200_OK)
 async def restore_user(
-    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId,
+    current_user=Depends(get_current_user_id),
+    db=Depends(get_db),
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]
@@ -150,7 +158,9 @@ async def restore_user(
     "/permanent/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def permanent_delete(
-    user_id: PyObjectId, current_user=Depends(get_current_user_id), db=Depends(get_db)
+    user_id: PyObjectId,
+    current_user=Depends(get_current_user_id),
+    db=Depends(get_db),
 ):
     user_collection: Collection = db["users"]
     trash_collection: Collection = db["trash"]

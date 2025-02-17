@@ -96,7 +96,10 @@ async def get_admin_user_token(test_admin_user: Dict[str, str], client: AsyncCli
 
 @pytest_asyncio.fixture
 async def get_current_user_token(test_user: Dict[str, str], client: AsyncClient):
-    login_payload = {"email": test_user["email"], "password": test_user["password"]}
+    login_payload = {
+        "email": test_user["email"],
+        "password": test_user["password"],
+    }
     login_response = await client.post("/api/v1/auth/login", json=login_payload)
     assert login_response.status_code == 200
     json_data = login_response.json()
