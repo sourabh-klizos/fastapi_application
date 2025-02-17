@@ -15,7 +15,7 @@ jobs:
     services:
       mongo:
         image: mongo:latest
-        options: --health-cmd="curl --silent --fail localhost:27017" --health-interval=10s --health-timeout=5s --health-retries=5
+        options: --health-cmd="curl --silent --fail localhost:27017 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
         ports:
           - 27017:27017
 
@@ -26,7 +26,6 @@ jobs:
       TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }} 
       SECRET_KEY: ${{ secrets.SECRET_KEY }} 
       ALGORITHM: ${{ secrets.ALGORITHM }}  
-
 
     steps:
     - name: Checkout code
@@ -46,6 +45,13 @@ jobs:
       run: |
         pip install flake8
         flake8 . --max-line-length=79
+
+    - name: Wait for MongoDB to start
+      run: |
+        until curl --silent --fail localhost:27017; do
+          echo "Waiting for MongoDB to start..."
+          sleep 2
+        done
 
     - name: Run tests with pytest
       run: |
