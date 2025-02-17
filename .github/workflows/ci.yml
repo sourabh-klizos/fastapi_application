@@ -8,24 +8,29 @@ on:
     branches:
       - development
 
+      
 jobs:
   lint_and_test:
     runs-on: ubuntu-latest
 
     services:
       mongo:
-        image: mongo:latest
-        options: --health-cmd="curl --silent --fail localhost:27017 || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
+        image: mongo:6.0
+        options: >-
+          --health-cmd="mongo --eval 'db.stats()'"
+          --health-interval=30s
+          --health-timeout=10s
+          --health-retries=10
         ports:
           - 27017:27017
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }} 
-      DB_NAME: ${{ secrets.DB_NAME }}            
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DB_NAME: ${{ secrets.DB_NAME }}
       TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-      TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }} 
-      SECRET_KEY: ${{ secrets.SECRET_KEY }} 
-      ALGORITHM: ${{ secrets.ALGORITHM }}  
+      TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
 
     steps:
     - name: Checkout code
@@ -46,10 +51,20 @@ jobs:
         pip install flake8
         flake8 . --max-line-length=79
 
+    - name: Wait for MongoDB to initialize
+      run: |
+        echo "Waiting for MongoDB to initialize..."
+        sleep 30
+
     - name: Wait for MongoDB to start
       run: |
-        until curl --silent --fail localhost:27017; do
-          echo "Waiting for MongoDB to start..."
+        echo "Waiting for MongoDB to start..."
+        for i in {1..30}; do
+          if mongo --eval 'db.stats()' > /dev/null 2>&1; then
+            echo "MongoDB is ready!"
+            break
+          fi
+          echo "MongoDB not ready, waiting 2 seconds..."
           sleep 2
         done
 
