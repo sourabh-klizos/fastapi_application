@@ -1,4 +1,4 @@
-git rm --cached .env
+
 venv/
 *.pyc
 .env
