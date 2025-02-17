@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
-from app.database.db import get_db
+
 from motor.motor_asyncio import AsyncIOMotorClient
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport

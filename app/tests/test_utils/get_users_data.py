@@ -14,7 +14,6 @@ async def generate_fake_users(num_users=5):
                 "username": username,
                 "password": password,
                 "email": email,
-            
             }
         )
 

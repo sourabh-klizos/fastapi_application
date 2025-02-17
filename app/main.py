@@ -4,6 +4,7 @@ from app.routes import (
     get_access_by_refresh_token as obtain_access_router,
     admin,
     trash,
+    profile,
 )
 
 
@@ -18,6 +19,7 @@ app.include_router(auth.auth_routes)
 app.include_router(obtain_access_router.access_routes)
 app.include_router(admin.admin_routes)
 app.include_router(trash.trash_routes)
+app.include_router(profile.profile_routes)
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)

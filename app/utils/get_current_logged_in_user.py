@@ -1,4 +1,4 @@
-from fastapi import  status, HTTPException,  Security
+from fastapi import status, HTTPException, Security
 
 from fastapi.security import OAuth2PasswordBearer
 
