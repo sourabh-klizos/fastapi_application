@@ -67,11 +67,7 @@ The request body should contain the following JSON data:
 ### if you send wrong payload
 - `Response  with status code 422 Unprocessable Content `.
 
-```json 
-{
-    "detail": "User already exists with this email"
-}
-```
+
 
 ##
 ### This API is excatly same as Signup  same response and request follows
