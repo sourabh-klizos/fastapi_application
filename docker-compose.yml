@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  fastapi_app:
+    build: .
+    container_name: fastapi_app_container
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/fastapi_app_volume 
+    environment:
+      - DATABASE_URL=${DATABASE_URL_DOCKER}
+      - DB_NAME=${DB_NAME_DOCKER}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - TEST_DATABASE_URL=${TEST_DATABASE_URL_DOCKER}
+      - TEST_DB_NAME=${TEST_DB_NAME_DOCKER}
+    networks:
+      - fastapi-mongo-network
+    depends_on:
+      - mongo_db
+    
+  mongo_db:
+    image: mongo:latest
+    container_name: mongo_db_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fastapi-mongo-network
+  
+    
+volumes:
+  mongo_data: 
+
+networks:
+  fastapi-mongo-network:
+    driver: bridge
