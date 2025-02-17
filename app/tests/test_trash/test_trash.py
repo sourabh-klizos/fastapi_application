@@ -19,8 +19,8 @@ async def test_get_trash_with_admin_user(
 async def test_get_trash_with_regular_user(
     client: AsyncClient, get_current_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {str(tokens)}"}
     response = await client.get("/api/v1/trash/", headers=headers)
     assert response.status_code == 403
 
@@ -32,8 +32,8 @@ async def test_delete_bulk_users(
     get_test_db,
     create_bulk_test_users,
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {str(tokens)}"}
 
     data_of_users = create_bulk_test_users
 
@@ -62,8 +62,8 @@ async def test_delete_bulk_users_admin(
     get_test_db,
     create_bulk_test_users,
 ):
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     data_of_users = create_bulk_test_users
 
@@ -100,8 +100,8 @@ async def test_delete_bulk_users_admin(
 async def test_restore_users_admin(
     client: AsyncClient, get_admin_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -137,8 +137,8 @@ async def test_restore_users_admin(
 async def test_restore_users_with_regular_user(
     client: AsyncClient, get_current_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -174,8 +174,8 @@ async def test_restore_users_with_regular_user(
 async def test_permanent_delete_users_admin(
     client: AsyncClient, get_admin_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -213,8 +213,8 @@ async def test_permanent_delete_users_admin(
 async def test_permanent_delete_users_with_regular_user(
     client: AsyncClient, get_current_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     user_collection: Collection = db["users"]
