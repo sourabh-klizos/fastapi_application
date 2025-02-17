@@ -3,10 +3,10 @@ name: FastAPI with MongoDB CI
 on:
   push:
     branches:
-      - main
+      - development
   pull_request:
     branches:
-      - main
+      - development
 
 jobs:
   test:
