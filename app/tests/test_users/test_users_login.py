@@ -9,8 +9,8 @@ from typing import Dict
 async def test_get_users_with_regular_user(
     client: AsyncClient, get_current_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
     response = await client.get("/api/v1/auth/users", headers=headers)
     assert response.status_code == 403
 
@@ -19,8 +19,8 @@ async def test_get_users_with_regular_user(
 async def test_get_users(
     client: AsyncClient, get_admin_user_token: Dict[str, str], get_test_db
 ):
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     users_collection: Collection = db["users"]
@@ -40,8 +40,8 @@ async def test_search_user(
     client, get_test_db, get_admin_user_token, create_bulk_test_users
 ):
 
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     data_to_create = create_bulk_test_users
 
@@ -59,8 +59,8 @@ async def test_limit_no_of_records(
     client, get_test_db, get_admin_user_token, create_bulk_test_users
 ):
 
-    tokens = get_admin_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     data_to_create = create_bulk_test_users
     username = data_to_create[0]["username"]
@@ -75,8 +75,8 @@ async def test_limit_no_of_records(
 async def test_get_current_user_detail(
     client, test_user, get_test_db, get_current_user_token
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -92,8 +92,8 @@ async def test_get_current_user_detail(
 async def test_access_other_user(
     client, test_user, get_test_db, get_current_user_token
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": f"Bearer {tokens["access_token"]}"}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": f"Bearer {tokens}"}
 
     other_user_detail = {
         "email": "other@gmail.com",
@@ -121,8 +121,8 @@ async def test_access_other_user(
 
 @pytest.mark.asyncio
 async def test_access_other_user(client, test_user, get_test_db, get_admin_user_token):
-    tokens = get_admin_user_token
-    headers = {"Authorization": "Bearer" + " " + tokens["access_token"]}
+    tokens = get_admin_user_token["access_token"]
+    headers = {"Authorization": "Bearer" + " " + tokens}
 
     other_user_detail = {
         "email": "other@gmail.com",
@@ -152,8 +152,8 @@ async def test_access_other_user(client, test_user, get_test_db, get_admin_user_
 async def test_get_current_user_detail(
     client, test_user, get_test_db, get_current_user_token
 ):
-    tokens = get_current_user_token
-    headers = {"Authorization": "Bearer" + " " + tokens["access_token"]}
+    tokens = get_current_user_token["access_token"]
+    headers = {"Authorization": "Bearer" + " " + tokens}
 
     db = get_test_db
     user_collection: Collection = db["users"]
