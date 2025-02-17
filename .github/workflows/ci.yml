@@ -3,10 +3,10 @@ name: FastAPI with MongoDB CI
 on:
   push:
     branches:
-      - development
+      - main
   pull_request:
     branches:
-      - development
+      - main
 
 jobs:
   test:
@@ -14,7 +14,7 @@ jobs:
 
     services:
       mongodb:
-        image: mongo:5.0
+        image: mongo:5.0  # You can specify a version like mongo:5.0 for stability
         ports:
           - 27017:27017
         options: >-
@@ -22,6 +22,24 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+    env:
+      # Define all your environment variables here
+      DATABASE_URL: mongodb://mongo_db:27017/   # Use docker service name as URL
+      DB_NAME: fast_api_db
+      SECRET_KEY: "bGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+      ALGORITHM: "HS256"
+      TEST_DATABASE_URL: mongodb://mongo_db:27017/   # Use docker service name for tests
+      TEST_DB_NAME: fastapi_test_db
+
+      # Docker specific values
+      DATABASE_URL_DOCKER: mongodb://mongo_db:27017/
+      DB_NAME_DOCKER: fast_api_db
+      TEST_DATABASE_URL_DOCKER: mongodb://mongo_db:27017/
+      TEST_DB_NAME_DOCKER: fastapi_test_db
+
+      # If you use GitHub secrets for MONGODB_URI_SECRET, ensure it's set properly
+      MONGODB_URI: ${{ secrets.MONGODB_URI_SECRET }}
 
     steps:
     - name: Checkout repository
@@ -38,7 +56,5 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run tests
-      env:
-        MONGODB_URI: mongodb://localhost:27017/testdb
       run: |
         pytest
