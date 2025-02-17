@@ -3,9 +3,9 @@ from fastapi import FastAPI, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor import motor_asyncio
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 # client = motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017/")
 

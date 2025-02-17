@@ -65,8 +65,6 @@ async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
     user_dict["password"] = await get_hashed_password(user_dict["password"])
 
     await user_collection.insert_one(user_dict)
-
-    print("account created ---------------------------------successfully")
     return {"message": "User account created successfully."}
 
 
