@@ -10,7 +10,7 @@ from httpx import ASGITransport
 import os
 
 
-TEST_DATABASE_URL =os.getenv("TEST_DATABASE_URL")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 TEST_DB_NAME = os.getenv("TEST_DB_NAME")
 
 
