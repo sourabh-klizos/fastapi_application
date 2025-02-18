@@ -1,3 +1,64 @@
+
+# FastAPI Application with MongoDB
+
+This is a FastAPI application that connects to a MongoDB database. Follow the steps below to clone the repository, set up the environment, and run the application.
+
+## Prerequisites
+
+Before you start, make sure you have the following installed:
+
+- Python 3.7 or higher
+- MongoDB (either locally or through a cloud provider like MongoDB Atlas)
+- pip (Python package installer)
+
+## Step 1: Clone the Repository
+
+Start by cloning the Git repository to your local machine.
+
+```bash
+git clone https://github.com/sourabh-klizos/fastapi_application.git
+
+create a .env file in root dir same as app level  copy content from .env_example file
+
+install dependencies
+pip install -r requirements.txt
+
+Run this command to start fastapi server 
+uvicorn app.main:app
+
+GET  http://localhost:8000/health
+
+success response {"status":"I am healthy"} 
+
+```
+
+
+# Run with Docker
+
+This FastAPI application can be run using Docker and Docker Compose as well.
+
+## Step 1: Clone the Repository
+
+Clone the Git repository to your local machine:
+
+```bash
+git clone https://github.com/sourabh-klizos/fastapi_application.git
+
+Run this command
+docker-compose up
+
+
+GET  http://localhost:8000/health
+
+success response {"status":"I am healthy"} 
+
+
+```
+
+##
+
+### Details of Endpoints
+
 ## User Signup API
 
 ### Endpoint
@@ -74,10 +135,53 @@ The request body should contain the following JSON data:
 
 `POST http://localhost:8000/api/v1/auth/admin/signup`
 
-
-
-
 ##
+
+
+
+
+
+## Login Endpoint
+
+### Endpoint
+`POST http://localhost:8000/api/v1/auth/login`
+
+### Description
+This endpoint allows users to log in by providing their email and password. Upon successful login, the API returns an `access_token` and a 
+`refresh_token` which can be used for authenticated requests.
+
+### Request
+
+#### Headers
+- **Content-Type**: `application/json`
+
+#### Request Body:
+The request body should include the user's email and password.
+
+```json
+{
+  "email": "test@mail.com",
+  "password": "test"
+}
+```
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdiMzMxYTd......",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdiMzMxYTdhNDhhYWNhY...."
+}
+```
+
+### Error if not valid credentials 
+```json
+{
+    "detail": "Incorrect email or password"
+}
+```
+
+
+
+
 
 ### List All Active Users
 `GET http://localhost:8000/api/v1/auth/users`
@@ -212,44 +316,6 @@ This endpoint retrieves the details of a specific user. The user must either be 
 
 
 
-
-## Login Endpoint
-
-### Endpoint
-`POST http://localhost:8000/api/v1/auth/login`
-
-### Description
-This endpoint allows users to log in by providing their email and password. Upon successful login, the API returns an `access_token` and a 
-`refresh_token` which can be used for authenticated requests.
-
-### Request
-
-#### Headers
-- **Content-Type**: `application/json`
-
-#### Request Body:
-The request body should include the user's email and password.
-
-```json
-{
-  "email": "test@mail.com",
-  "password": "test"
-}
-```
-
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdiMzMxYTd......",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdiMzMxYTdhNDhhYWNhY...."
-}
-```
-
-### Error if not valid credentials 
-```json
-{
-    "detail": "Incorrect email or password"
-}
-```
 
 
 
