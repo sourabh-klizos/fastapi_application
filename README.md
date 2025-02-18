@@ -20,7 +20,7 @@ git clone https://github.com/sourabh-klizos/fastapi_application.git
 
 cd fastapi_application
 
-create a .env file in root dir  copy content from .env_example file
+"create a .env file in root dir  copy content from .env_example file"
 
 install dependencies
 pip install -r requirements.txt
