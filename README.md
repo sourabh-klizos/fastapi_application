@@ -630,6 +630,53 @@ success status code 204
 
 
 
+## Upload image to s3
+
+This is a simple API built using **FastAPI** that allows users to upload profile images to an Amazon S3 bucket.
+
+## API Endpoint
+
+### `POST /api/v1/profile-upload-s3/`
+
+This endpoint allows the user to upload an image file (profile picture) to S3. The image should be sent with the key `file` and should be an actual image file.
+
+### Request Format
+
+### ".jpg", ".jpeg", ".png"  supported types
+
+**URL:** `http://localhost:8000/api/v1/profile-upload-s3/`
+
+**Method:** `POST`
+
+**Headers:**
+- **Authorization:** Bearer token (You need to include your Bearer token for authentication)
+- **Content-Type:** `multipart/form-data` (This will automatically be handled by `curl` or any HTTP client that supports file uploads.)
+
+**Body:**
+- **file**: The image file you want to upload.
+
+### Example Request
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/profile-upload-s3/' \
+  -H 'Authorization: Bearer YOUR_BEARER_TOKEN' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'file=@/path/to/your/image.jpg'
+
+
+success code 200 and response data
+{
+    "message": "Image uploaded successfully!",
+    "filename": "https://fastapi-s3-bucket-sourabh.s3.eu-north-1.amazonaws.com/pexels-hsapir-1054655.jpg_18cd00be-845c-47d5-9e4e-1ae7c00a5d70.jpg"
+}
+
+
+
+```
+
+
+
 
 ## Profile Image Upload Endpoint
 
