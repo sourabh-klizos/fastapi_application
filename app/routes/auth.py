@@ -31,75 +31,102 @@ async def create_user(
     request: Request, user_credential: UserRequestModel, db=Depends(get_db)
 ):
 
-    user_collection: Collection = db["users"]
+    try:
 
-    user_dict = user_credential.model_dump()
+        user_collection: Collection = db["users"]
 
-    user_dict["email"] = user_dict["email"].lower()
-    user_dict["username"] = user_dict["username"].lower()
+        user_dict = user_credential.model_dump()
 
-    username = user_dict.get("username")
-    user_email = user_dict.get("email")
-    email_already_exists = await user_collection.find_one({"email": user_email})
-    username_already_exists = await user_collection.find_one({"username": username})
-    if email_already_exists:
+        user_dict["email"] = user_dict["email"].lower()
+        user_dict["username"] = user_dict["username"].lower()
+
+        username = user_dict.get("username")
+        user_email = user_dict.get("email")
+        email_already_exists = await user_collection.find_one({"email": user_email})
+        username_already_exists = await user_collection.find_one({"username": username})
+        if email_already_exists:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User already exists with this email",
+            )
+
+        if username_already_exists:
+            choose_username = await generate_available_username(username, db)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "User already exists with this username",
+                    "suggested_usernames": choose_username,
+                },
+            )
+
+        user_dict["created_at"] = datetime.now()
+        user_dict["role"] = "regular"
+        user_dict["is_deleted"] = False
+        user_dict["updated_at"] = None
+        user_dict["password"] = await get_hashed_password(user_dict["password"])
+
+        await user_collection.insert_one(user_dict)
+        return {"message": "User account created successfully."}
+    except HTTPException as http_error:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already exists with this email",
+            status_code=http_error.status_code,
+            detail=http_error.detail,
         )
 
-    if username_already_exists:
-        choose_username = await generate_available_username(username, db)
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "message": "User already exists with this username",
-                "suggested_usernames": choose_username,
-            },
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
         )
-
-    user_dict["created_at"] = datetime.now()
-    user_dict["role"] = "regular"
-    user_dict["is_deleted"] = False
-    user_dict["updated_at"] = None
-    user_dict["password"] = await get_hashed_password(user_dict["password"])
-
-    await user_collection.insert_one(user_dict)
-    return {"message": "User account created successfully."}
 
 
 @auth_routes.post(
     "/login", status_code=status.HTTP_200_OK, response_model=TokenResponseModel
 )
 async def user_login(user_credential: UserLoginModel, db=Depends(get_db)):
-    user_collection: Collection = db["users"]
 
-    user_dict = user_credential.model_dump()
-    email = user_dict["email"].lower()
-    password = user_dict.get("password")
+    try:
+        user_collection: Collection = db["users"]
 
-    user_instance = await user_collection.find_one({"email": email})
-    if not user_instance:
+        user_dict = user_credential.model_dump()
+        email = user_dict["email"].lower()
+        password = user_dict.get("password")
+
+        user_instance = await user_collection.find_one({"email": email})
+        if not user_instance:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+            )
+
+        hashed_password = user_instance.get("password")
+        check_password = await verify_password(password, hashed_password)
+
+        if not check_password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+            )
+
+        user_id = str(user_instance.get("_id"))
+
+        access_token = await create_access_token(user_id)
+        refresh_token = await create_refresh_token(user_id=user_id, db=db)
+        response = {"access_token": access_token, "refresh_token": refresh_token}
+        return response
+
+    except HTTPException as http_error:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            status_code=http_error.status_code,
+            detail=http_error.detail,
         )
 
-    hashed_password = user_instance.get("password")
-    check_password = await verify_password(password, hashed_password)
-
-    if not check_password:
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
         )
-
-    user_id = str(user_instance.get("_id"))
-
-    access_token = await create_access_token(user_id)
-    refresh_token = await create_refresh_token(user_id=user_id, db=db)
-    response = {"access_token": access_token, "refresh_token": refresh_token}
-    return response
 
 
 @auth_routes.get(
@@ -115,32 +142,45 @@ async def retrive_active_users(
     db=Depends(get_db),
 ):
 
-    user_collection: Collection = db["users"]
-
-    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
-    await is_logged_in_and_admin(logged_in_user, raise_error=True)
-
-    query = {"is_deleted": False}
-    exclude_fields = {"password": 0}
-
-    if q is not None:
-        query["username"] = {"$regex": q, "$options": "i"}
-
     try:
-        paginated_response = await paginate_query(
-            query=query,
-            exclude_fields=exclude_fields,
-            collection=user_collection,
-            page=page,
-            per_page=per_page,
-        )
+        user_collection: Collection = db["users"]
 
-        return paginated_response
+        logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
+        await is_logged_in_and_admin(logged_in_user, raise_error=True)
+
+        query = {"is_deleted": False}
+        exclude_fields = {"password": 0}
+
+        if q is not None:
+            query["username"] = {"$regex": q, "$options": "i"}
+
+        try:
+            paginated_response = await paginate_query(
+                query=query,
+                exclude_fields=exclude_fields,
+                collection=user_collection,
+                page=page,
+                per_page=per_page,
+            )
+
+            return paginated_response
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An error occurred: {str(e)}",
+            )
+
+    except HTTPException as http_error:
+        raise HTTPException(
+            status_code=http_error.status_code,
+            detail=http_error.detail,
+        )
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
+            detail=f"An unexpected error occurred: {str(e)}",
         )
 
 
@@ -150,25 +190,38 @@ async def get_user_detail(
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
-    user_collection: Collection = db["users"]
+    try:
 
-    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
-    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
+        user_collection: Collection = db["users"]
 
-    if current_user == user_id or is_admin_user:
-        user = await user_collection.find_one(
-            {"_id": ObjectId(user_id), "is_deleted": False}, {"password": 0}
-        )
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
+        is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
+
+        if current_user == user_id or is_admin_user:
+            user = await user_collection.find_one(
+                {"_id": ObjectId(user_id), "is_deleted": False}, {"password": 0}
             )
-        user = await convert_objectid(user)
-        return user
-    else:
+            if user is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                )
+            user = await convert_objectid(user)
+            return user
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You dont have access to perfome this action",
+            )
+    except HTTPException as http_error:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You dont have access to perfome this action",
+            status_code=http_error.status_code,
+            detail=http_error.detail,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
         )
 
 
@@ -184,57 +237,71 @@ async def get_edit_user_detail(
     db=Depends(get_db),
 ):
 
-    user_collection: Collection = db["users"]
-    dict_data = data.model_dump()
+    try:
 
-    data_to_update = dict()
-    if "email" in dict_data and dict_data["email"] is not None:
-        email_alredy_exits = await user_collection.find_one(
-            {"email": dict_data["email"].lower()}
-        )
+        user_collection: Collection = db["users"]
+        dict_data = data.model_dump()
 
-        if email_alredy_exits:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Email Alredy Exists",
+        data_to_update = dict()
+        if "email" in dict_data and dict_data["email"] is not None:
+            email_alredy_exits = await user_collection.find_one(
+                {"email": dict_data["email"].lower()}
             )
 
-        data_to_update["email"] = dict_data["email"].lower()
+            if email_alredy_exits:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Email Alredy Exists",
+                )
 
-    if "username" in dict_data and dict_data["username"] is not None:
-        username_alredy_exists = await user_collection.find_one(
-            {"username": dict_data["username"].lower()}
-        )
-        if username_alredy_exists:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Username Alredy Exists",
+            data_to_update["email"] = dict_data["email"].lower()
+
+        if "username" in dict_data and dict_data["username"] is not None:
+            username_alredy_exists = await user_collection.find_one(
+                {"username": dict_data["username"].lower()}
             )
-        data_to_update["username"] = dict_data["username"].lower()
+            if username_alredy_exists:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Username Alredy Exists",
+                )
+            data_to_update["username"] = dict_data["username"].lower()
 
-    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
+        logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
 
-    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
+        is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
 
-    if current_user == user_id or is_admin_user:
-        data_to_update["updated_at"] = datetime.now()
-        data_to_update["updated_by"] = str(current_user)
+        if current_user == user_id or is_admin_user:
+            data_to_update["updated_at"] = datetime.now()
+            data_to_update["updated_by"] = str(current_user)
 
-        await user_collection.update_one(
-            {"_id": ObjectId(user_id)}, {"$set": data_to_update}
-        )
-        user = await user_collection.find_one(
-            {"_id": ObjectId(user_id)}, {"password": 0}
-        )
+            await user_collection.update_one(
+                {"_id": ObjectId(user_id)}, {"$set": data_to_update}
+            )
+            user = await user_collection.find_one(
+                {"_id": ObjectId(user_id)}, {"password": 0}
+            )
 
-        user_data = await convert_objectid(user)
-    else:
+            user_data = await convert_objectid(user)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You dont have access to perfome this action",
+            )
+
+        return user_data
+
+    except HTTPException as http_error:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You dont have access to perfome this action",
+            status_code=http_error.status_code,
+            detail=http_error.detail,
         )
 
-    return user_data
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
+        )
 
 
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -244,49 +311,63 @@ async def soft_delete_user(
     db=Depends(get_db),
     reason: str = Query(),
 ):
-    user_collection: Collection = db["users"]
-    trash_collection: Collection = db["trash"]
+    try:
 
-    logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
-    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
+        user_collection: Collection = db["users"]
+        trash_collection: Collection = db["trash"]
 
-    if current_user == user_id or is_admin_user:
-        user = await user_collection.find_one({"_id": ObjectId(user_id)})
+        logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
+        is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=False)
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User Doesn't Exists",
-            )
+        if current_user == user_id or is_admin_user:
+            user = await user_collection.find_one({"_id": ObjectId(user_id)})
 
-        if user:
-            if user.get("is_deleted"):
+            if not user:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Alredy Deleted",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User Doesn't Exists",
                 )
 
-            condition = {"_id": ObjectId(user_id)}
-            update = {"$set": {"is_deleted": True}}
+            if user:
+                if user.get("is_deleted"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Alredy Deleted",
+                    )
 
-            user = await user_collection.update_one(condition, update)
-            trash = {
-                "user_id": user_id,
-                "deleted_by": current_user,
-                "deleted_at": datetime.now(),
-                "reason": reason,
-            }
+                condition = {"_id": ObjectId(user_id)}
+                update = {"$set": {"is_deleted": True}}
 
-            await trash_collection.insert_one(trash)
-            return
+                user = await user_collection.update_one(condition, update)
+                trash = {
+                    "user_id": user_id,
+                    "deleted_by": current_user,
+                    "deleted_at": datetime.now(),
+                    "reason": reason,
+                }
 
+                await trash_collection.insert_one(trash)
+                return
+
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User Doesn't Exists",
+                )
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User Doesn't Exists",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to performe this action",
             )
-    else:
+
+    except HTTPException as http_error:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have access to performe this action",
+            status_code=http_error.status_code,
+            detail=http_error.detail,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
         )
