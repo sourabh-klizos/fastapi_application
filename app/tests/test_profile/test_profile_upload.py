@@ -85,4 +85,4 @@ async def test_upload_profile__to_s3_image_fail(
             files={"file": ("test2.svg", image_file, "image/jpeg")},
             headers=headers,
         )
-    assert response.status_code == 500
+    assert response.status_code == 400

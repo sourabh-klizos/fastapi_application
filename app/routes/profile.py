@@ -15,46 +15,57 @@ async def upolad_profile_picture(
     current_user: str = Depends(get_current_user_id),
     db=Depends(get_db),
 ):
+    try:
+        user_collection: Collection = db["users"]
+        user = await user_collection.find_one({"_id": ObjectId(current_user)})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
 
-    user_collection: Collection = db["users"]
+        file_name_with_extension = image.filename
+        file_name, file_extension = os.path.splitext(file_name_with_extension)
 
-    user = await user_collection.find_one({"_id": ObjectId(current_user)})
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        allowed_types: list = [".jpg", ".jpeg", ".png"]
+        if file_extension not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File type not allowed. Please upload a .jpg, .jpeg, or .png file.",
+            )
+
+        image_data = await image.read()
+
+        upload_folder = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "uploaded_images"
         )
 
-    file_name_with_extension = image.filename
-    file_name, file_extension = os.path.splitext(file_name_with_extension)
+        os.makedirs(upload_folder, exist_ok=True)
 
-    allowed_types: list = [".jpg", ".jpeg", ".png"]
-    if file_extension not in allowed_types:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File type not allowed. Please upload a .jpg, .jpeg, or .png file.",
+        unique_filename = f"{file_name.lower()}_{uuid.uuid4().hex}{file_extension.lower()}"
+
+        image_path = os.path.join(upload_folder, unique_filename)
+
+        await user_collection.update_one(
+            {"_id": ObjectId(current_user)},
+            {"$set": {"profile_image": unique_filename}},
         )
 
-    image_data = await image.read()
+        with open(image_path, "wb") as f:
+            f.write(image_data)
 
-    upload_folder = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "uploaded_images"
-    )
+        return {
+            "message": "File uploaded successfully!",
+            "filename": unique_filename,
+        }
 
-    os.makedirs(upload_folder, exist_ok=True)
-
-    unique_filename = f"{file_name.lower()}_{uuid.uuid4().hex}{file_extension.lower()}"
-
-    image_path = os.path.join(upload_folder, unique_filename)
-
-    await user_collection.update_one(
-        {"_id": ObjectId(current_user)},
-        {"$set": {"profile_image": unique_filename}},
-    )
-
-    with open(image_path, "wb") as f:
-        f.write(image_data)
-
-    return {
-        "message": "File uploaded successfully!",
-        "filename": unique_filename,
-    }
+    except HTTPException as http_error:
+        raise HTTPException(
+            status_code=http_error.status_code,
+            detail=http_error.detail,
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}",
+        )

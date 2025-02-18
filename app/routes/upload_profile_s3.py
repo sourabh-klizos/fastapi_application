@@ -69,7 +69,13 @@ async def upload_image(
             content={"message": "Image uploaded successfully!", "filename": file_url},
             status_code=200,
         )
-
+    
+    except HTTPException as http_error:
+        raise HTTPException(
+            status_code=http_error.status_code,
+            detail=http_error.detail,
+        )
+    
     except (NoCredentialsError, PartialCredentialsError) as e:
         return JSONResponse(
             content={"message": f"Credentials error: {str(e)}"}, status_code=400
