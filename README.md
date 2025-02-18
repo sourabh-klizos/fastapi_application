@@ -18,7 +18,9 @@ Start by cloning the Git repository to your local machine.
 ```bash
 git clone https://github.com/sourabh-klizos/fastapi_application.git
 
-create a .env file in root dir same as app level  copy content from .env_example file
+cd fastapi_application
+
+create a .env file in root dir  copy content from .env_example file
 
 install dependencies
 pip install -r requirements.txt
@@ -43,6 +45,8 @@ Clone the Git repository to your local machine:
 
 ```bash
 git clone https://github.com/sourabh-klizos/fastapi_application.git
+
+cd fastapi_application
 
 Run this command
 docker-compose up

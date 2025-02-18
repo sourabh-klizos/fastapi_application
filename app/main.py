@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request
 from app.routes import (
     auth,
     get_access_by_refresh_token as obtain_access_router,
@@ -10,9 +10,9 @@ from app.routes import (
 
 from dotenv import load_dotenv
 
+load_dotenv(".env")
 
 app = FastAPI()
-load_dotenv(".env")
 
 
 app.include_router(auth.auth_routes)
@@ -23,5 +23,5 @@ app.include_router(profile.profile_routes)
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
-def helth_check() -> dict:
+def helth_check(request: Request) -> dict:
     return {"status": "I am healthy"}
