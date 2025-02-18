@@ -2,7 +2,6 @@ import pytest
 from httpx import AsyncClient
 from pymongo.collection import Collection
 from typing import Dict
-from app.tests.test_utils.get_users_data import generate_fake_users
 
 
 @pytest.mark.asyncio

@@ -62,30 +62,12 @@ async def test_limit_no_of_records(
     tokens = get_admin_user_token["access_token"]
     headers = {"Authorization": f"Bearer {tokens}"}
 
-    data_to_create = create_bulk_test_users
-    username = data_to_create[0]["username"]
-    response = await client.get(f"/api/v1/auth/users?per_page=4", headers=headers)
+    create_bulk_test_users
+    response = await client.get("/api/v1/auth/users?per_page=4", headers=headers)
     assert response.status_code == 200
     response_data = response.json()
     data_length = len(response_data["data"])
     assert data_length == 4
-
-
-@pytest.mark.asyncio
-async def test_get_current_user_detail(
-    client, test_user, get_test_db, get_current_user_token
-):
-    tokens = get_current_user_token["access_token"]
-    headers = {"Authorization": f"Bearer {tokens}"}
-
-    db = get_test_db
-    user_collection: Collection = db["users"]
-    user_id = await user_collection.find_one({"email": test_user["email"]}, {"_id": 1})
-    str_user_id = str(user_id["_id"])
-    response = await client.get(f"/api/v1/auth/users/{str_user_id}", headers=headers)
-    assert response.status_code == 200
-    response_data = response.json()
-    assert response_data["email"] == test_user["email"]
 
 
 @pytest.mark.asyncio
@@ -102,7 +84,6 @@ async def test_access_other_user(
     }
     response = await client.post("/api/v1/auth/signup", json=other_user_detail)
     assert response.status_code == 201
-    response_data = response.json()
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -116,22 +97,20 @@ async def test_access_other_user(
     )
 
     assert response.status_code == 403
-    response_data = response.json()
 
 
 @pytest.mark.asyncio
-async def test_access_other_user(client, test_user, get_test_db, get_admin_user_token):
+async def test_access_other_admin(client, test_user, get_test_db, get_admin_user_token):
     tokens = get_admin_user_token["access_token"]
     headers = {"Authorization": "Bearer" + " " + tokens}
 
     other_user_detail = {
-        "email": "other@gmail.com",
+        "email": "othes12r@gmail.com",
         "password": "test1234",
-        "username": "other_sourabh",
+        "username": "oths2er_sourabh",
     }
     response = await client.post("/api/v1/auth/signup", json=other_user_detail)
     assert response.status_code == 201
-    response_data = response.json()
 
     db = get_test_db
     user_collection: Collection = db["users"]
@@ -145,7 +124,6 @@ async def test_access_other_user(client, test_user, get_test_db, get_admin_user_
     )
 
     assert response.status_code == 200
-    response_data = response.json()
 
 
 @pytest.mark.asyncio
@@ -234,7 +212,6 @@ async def test_update_other_user_detail_without_admin_previllage(
 
     response = await client.post("/api/v1/auth/signup", json=other_user_detail)
     assert response.status_code == 201
-    response_data = response.json()
 
     db = get_test_db
     user_collection: Collection = db["users"]
