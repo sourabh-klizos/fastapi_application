@@ -123,7 +123,7 @@ response with code 200
 
 ```
 
-```json
+```bash
 http://localhost:8000/api/v1/auth/users?q=sourabh
 You can also perfome search via username  where sourabh is a user
 
@@ -132,6 +132,7 @@ http://localhost:8000/api/v1/auth/users?per_page=1&page=1
 remember page and per_page should be positive number 
 limit number of response per_page=5    maximum limit of per_page is 30
 jump to another page = page=10 
+
 ```
 
 
@@ -218,7 +219,8 @@ This endpoint retrieves the details of a specific user. The user must either be 
 `POST http://localhost:8000/api/v1/auth/login`
 
 ### Description
-This endpoint allows users to log in by providing their email and password. Upon successful login, the API returns an `access_token` and a `refresh_token` which can be used for authenticated requests.
+This endpoint allows users to log in by providing their email and password. Upon successful login, the API returns an `access_token` and a 
+`refresh_token` which can be used for authenticated requests.
 
 ### Request
 
@@ -297,7 +299,8 @@ You must include either or both `username` or `email`, and neither can be empty.
 `DELETE http://localhost:8000/api/v1/auth/users/{user_id}?reason={reason}`
 
 ### Description
-This endpoint allows the **owner** of the account or an **admin** user to delete a user’s account. The request must include a `reason` query parameter. Only the owner of the account or an admin can delete the account. If anyone else tries to delete an account, they will receive a `403 Forbidden` error.
+This endpoint allows the **owner** of the account or an **admin** user to delete a user’s account. The request must include a `reason` query parameter.
+Only the owner of the account or an admin can delete the account. If anyone else tries to delete an account, they will receive a `403 Forbidden` error.
 
 ### Authentication
 - **Authorization**: `Bearer <your-token>` (A valid Bearer token must be provided in the request header).
@@ -492,7 +495,8 @@ This endpoint allows an **admin** user to **restore a soft-deleted user**. The r
 
 Example request:
 
-```json
+```bash
+
 PUT http://localhost:8000/api/v1/trash/restore/67a9939fdc65a0145ee7397f
 Authorization: Bearer <your-token>
 
