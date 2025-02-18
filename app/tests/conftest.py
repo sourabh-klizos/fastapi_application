@@ -13,7 +13,7 @@ TEST_DATABASE_URL = "mongodb://localhost:27017"
 TEST_DB_NAME = "test_db"
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def get_test_db():
     client = AsyncIOMotorClient(TEST_DATABASE_URL)
     db = client[TEST_DB_NAME]
@@ -23,7 +23,7 @@ async def get_test_db():
         client.close()
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def override_get_db(get_test_db):
     """Fixture to override FastAPI's get_db dependency for all tests."""
     app.dependency_overrides[get_db] = lambda: get_test_db
@@ -31,7 +31,7 @@ async def override_get_db(get_test_db):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def client():
     """Fixture to provide an HTTPX client for API testing."""
     async with AsyncClient(
@@ -40,7 +40,7 @@ async def client():
         yield client
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def test_user(client: AsyncClient, get_test_db: AsyncIOMotorClient):
     """Fixture to create and clean up a test user."""
     payload = {
@@ -60,7 +60,7 @@ async def test_user(client: AsyncClient, get_test_db: AsyncIOMotorClient):
     await user_collection.find_one_and_delete({"email": payload["email"]})
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def test_admin_user(client: AsyncClient, get_test_db: AsyncIOMotorClient):
     """Fixture to create and clean up a test user."""
     user_data = {
@@ -80,7 +80,7 @@ async def test_admin_user(client: AsyncClient, get_test_db: AsyncIOMotorClient):
     await user_collection.find_one_and_delete({"email": user_data["email"]})
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def get_admin_user_token(test_admin_user: Dict[str, str], client: AsyncClient):
     login_payload = {
         "email": test_admin_user["email"],
@@ -94,7 +94,7 @@ async def get_admin_user_token(test_admin_user: Dict[str, str], client: AsyncCli
     yield json_data
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def get_current_user_token(test_user: Dict[str, str], client: AsyncClient):
     login_payload = {
         "email": test_user["email"],
@@ -108,7 +108,7 @@ async def get_current_user_token(test_user: Dict[str, str], client: AsyncClient)
     yield json_data
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="function")
 async def create_bulk_test_users(client: AsyncClient, get_test_db: AsyncIOMotorClient):
 
     payloads = await generate_fake_users()
