@@ -1,16 +1,11 @@
 import pytest
-from fastapi.testclient import TestClient
-
-from motor.motor_asyncio import AsyncIOMotorClient
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
+from httpx import AsyncClient
 from pymongo.collection import Collection
-import os
 
 
 @pytest.mark.asyncio
-async def test_signup_success(client, get_test_db):
-    """Test successful user signup."""
+async def test_signup_success(client: AsyncClient, get_test_db):
+
     user_data = {
         "email": "bssqews@mail.com",
         "password": "12wsess3",

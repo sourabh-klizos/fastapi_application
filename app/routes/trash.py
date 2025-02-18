@@ -7,7 +7,6 @@ from bson import ObjectId
 from datetime import datetime
 from app.utils.convert_bson_id_str import convert_objectid
 from app.models.trash import (
-    TrashResponseModel,
     PaginatedTrashResponseModel,
     BulkTrashIds,
 )
@@ -16,7 +15,6 @@ from app.utils.paginator import paginate_query
 from app.utils.str_to_bson import convert_str_object_id
 from app.database.db import get_db
 from pymongo.collection import Collection
-from app.models.user import UserResponseModel
 from app.utils.is_admin import is_logged_in_and_admin
 
 
@@ -39,7 +37,7 @@ async def view_trash(
     # try:
     logged_in_user = await user_collection.find_one({"_id": ObjectId(user_id)})
 
-    is_admin = await is_logged_in_and_admin(logged_in_user)
+    await is_logged_in_and_admin(logged_in_user)
 
     response = await paginate_query(
         collection=trash_collection,
@@ -62,7 +60,7 @@ async def bulk_delete(
     trash_collection: Collection = db["trash"]
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user_id)})
 
-    is_admin = await is_logged_in_and_admin(logged_in_user)
+    await is_logged_in_and_admin(logged_in_user)
 
     trash_ids = trash_ids.model_dump()
     reason = trash_ids.get("reason")
@@ -112,7 +110,7 @@ async def restore_user(
     trash_collection: Collection = db["trash"]
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
 
-    is_admin = await is_logged_in_and_admin(logged_in_user)
+    await is_logged_in_and_admin(logged_in_user)
 
     user_to_restore = await user_collection.find_one({"_id": ObjectId(user_id)})
 
@@ -121,7 +119,7 @@ async def restore_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    if user_to_restore["is_deleted"] == False:
+    if not user_to_restore["is_deleted"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You are Trying to restore a non deleted user",
@@ -135,7 +133,7 @@ async def restore_user(
             detail="Either user is permanantly deleted or not soft deleted",
         )
 
-    updated_user = await user_collection.find_one_and_update(
+    await user_collection.find_one_and_update(
         {"_id": ObjectId(user_id), "is_deleted": True},
         {"$set": {"is_deleted": False}},
         return_document=True,
@@ -167,13 +165,14 @@ async def permanent_delete(
 
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
 
-    is_admin = await is_logged_in_and_admin(logged_in_user)
+    await is_logged_in_and_admin(logged_in_user)
 
     trash_user = await trash_collection.find_one_and_delete({"user_id": user_id})
     if trash_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You are Trying to permanently delete a user who is alredy deleted or not soft deleted",
+            detail="""You are Trying to permanently delete \
+                a user who is alredy deleted or not soft deleted""",
         )
     if trash_user:
         return

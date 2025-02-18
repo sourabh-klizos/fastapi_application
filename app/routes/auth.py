@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Optional
 from app.utils.is_valid_object_id import PyObjectId
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query
@@ -115,7 +115,7 @@ async def retrive_active_users(
     user_collection: Collection = db["users"]
 
     logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
-    is_admin_user = await is_logged_in_and_admin(logged_in_user, raise_error=True)
+    await is_logged_in_and_admin(logged_in_user, raise_error=True)
 
     query = {"is_deleted": False}
     exclude_fields = {"password": 0}
@@ -174,7 +174,7 @@ async def get_user_detail(
     response_model=UserResponseModel,
     status_code=status.HTTP_200_OK,
 )
-async def get_user_detail(
+async def get_edit_user_detail(
     data: UserEditReqModel,
     user_id: PyObjectId,
     current_user=Depends(get_current_user_id),

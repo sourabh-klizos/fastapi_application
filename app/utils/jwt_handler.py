@@ -66,4 +66,4 @@ async def decode_jwt(access_token: str, token_type: str) -> dict:
 
     except Exception as e:
         # print(f"Error decoding token: {e}")
-        return None
+        return f"Error decoding token: {e}"
