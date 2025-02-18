@@ -7,10 +7,11 @@ from app.database.db import get_db
 from typing import Dict
 from app.tests.test_utils.get_users_data import generate_fake_users
 from httpx import ASGITransport
+import os
 
 
-TEST_DATABASE_URL = "mongodb://localhost:27017"
-TEST_DB_NAME = "test_db"
+TEST_DATABASE_URL =os.getenv("TEST_DATABASE_URL")
+TEST_DB_NAME = os.getenv("TEST_DB_NAME")
 
 
 @pytest_asyncio.fixture(scope="function")
