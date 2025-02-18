@@ -1,7 +1,8 @@
 
 venv/
 *.pyc
-../.env
 
 .env
 
+
+# ../.env
