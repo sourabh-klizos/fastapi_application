@@ -23,7 +23,11 @@ create a .env file in root dir same as app level  copy content from .env_example
 =======
 cd fastapi_application
 
+<<<<<<< HEAD
 create a .env file in root dir  copy content from .env_example file
+>>>>>>> development
+=======
+ "create a .env file in root dir  copy content from .env_example file"
 >>>>>>> development
 
 install dependencies

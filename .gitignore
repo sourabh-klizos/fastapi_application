@@ -1,0 +1,11 @@
+venv/
+*.pyc
+<<<<<<< HEAD:app/.gitignore
+.env
+=======
+
+.env
+
+
+# ../.env
+>>>>>>> development:.gitignore
