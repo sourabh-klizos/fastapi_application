@@ -5,6 +5,7 @@ from app.routes import (
     admin,
     trash,
     profile,
+    upload_profile_s3,
 )
 
 
@@ -21,6 +22,7 @@ app.include_router(obtain_access_router.access_routes)
 app.include_router(admin.admin_routes)
 app.include_router(trash.trash_routes)
 app.include_router(profile.profile_routes)
+app.include_router(upload_profile_s3.profile_upolad_s3)
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
