@@ -28,7 +28,9 @@ async def get_access_token(refresh_token: RefreshTokenReqModel, db=Depends(get_d
             )
 
         user_id = decoded_refresh["user_id"]
-        stored_refresh_token = await refresh_token_collection.find_one({"user_id": user_id})
+        stored_refresh_token = await refresh_token_collection.find_one(
+            {"user_id": user_id}
+        )
 
         if stored_refresh_token["refresh_token"] == refresh_token["refresh_token"]:
             access_token = await create_access_token(user_id=user_id)
@@ -37,13 +39,13 @@ async def get_access_token(refresh_token: RefreshTokenReqModel, db=Depends(get_d
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to perfome this operation",
         )
-    
+
     except HTTPException as http_error:
         raise HTTPException(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

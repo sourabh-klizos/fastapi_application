@@ -32,7 +32,7 @@ async def view_trash(
     per_page: Optional[int] = Query(10, ge=1, le=20),
     db=Depends(get_db),
 ):
-    
+
     try:
 
         user_collection: Collection = db["users"]
@@ -56,7 +56,7 @@ async def view_trash(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -74,7 +74,9 @@ async def bulk_delete(
 
         user_collection: Collection = db["users"]
         trash_collection: Collection = db["trash"]
-        logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user_id)})
+        logged_in_user = await user_collection.find_one(
+            {"_id": ObjectId(current_user_id)}
+        )
 
         await is_logged_in_and_admin(logged_in_user)
 
@@ -119,12 +121,13 @@ async def bulk_delete(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}",
         )
+
 
 @trash_routes.put("/restore/{user_id}", status_code=status.HTTP_200_OK)
 async def restore_user(
@@ -184,7 +187,7 @@ async def restore_user(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -228,7 +231,7 @@ async def permanent_delete(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

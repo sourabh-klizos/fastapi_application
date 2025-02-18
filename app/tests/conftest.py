@@ -24,7 +24,6 @@ async def get_test_db():
         client.close()
 
 
-
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def override_get_db(get_test_db):
     """Fixture to override FastAPI's get_db dependency for all tests."""

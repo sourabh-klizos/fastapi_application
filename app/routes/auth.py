@@ -30,9 +30,8 @@ auth_routes = APIRouter(prefix="/api/v1/auth", tags=["user"])
 async def create_user(
     request: Request, user_credential: UserRequestModel, db=Depends(get_db)
 ):
-    
-    try:
 
+    try:
 
         user_collection: Collection = db["users"]
 
@@ -74,12 +73,13 @@ async def create_user(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}",
         )
+
 
 @auth_routes.post(
     "/login", status_code=status.HTTP_200_OK, response_model=TokenResponseModel
@@ -115,13 +115,13 @@ async def user_login(user_credential: UserLoginModel, db=Depends(get_db)):
         refresh_token = await create_refresh_token(user_id=user_id, db=db)
         response = {"access_token": access_token, "refresh_token": refresh_token}
         return response
-    
+
     except HTTPException as http_error:
         raise HTTPException(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -141,7 +141,7 @@ async def retrive_active_users(
     q: Optional[str] = Query(None),
     db=Depends(get_db),
 ):
-    
+
     try:
         user_collection: Collection = db["users"]
 
@@ -170,19 +170,18 @@ async def retrive_active_users(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"An error occurred: {str(e)}",
             )
-        
+
     except HTTPException as http_error:
         raise HTTPException(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}",
-        )   
-        
+        )
 
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
@@ -218,7 +217,7 @@ async def get_user_detail(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -237,9 +236,8 @@ async def get_edit_user_detail(
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
-    
-    try:
 
+    try:
 
         user_collection: Collection = db["users"]
         dict_data = data.model_dump()
@@ -298,7 +296,7 @@ async def get_edit_user_detail(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -361,13 +359,13 @@ async def soft_delete_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have access to performe this action",
             )
-        
+
     except HTTPException as http_error:
         raise HTTPException(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

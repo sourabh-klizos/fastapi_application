@@ -30,7 +30,8 @@ async def upolad_profile_picture(
         if file_extension not in allowed_types:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File type not allowed. Please upload a .jpg, .jpeg, or .png file.",
+                detail="File type not allowed. Please upload \
+                        a  .jpg, .jpeg, or .png file.",
             )
 
         image_data = await image.read()
@@ -41,7 +42,9 @@ async def upolad_profile_picture(
 
         os.makedirs(upload_folder, exist_ok=True)
 
-        unique_filename = f"{file_name.lower()}_{uuid.uuid4().hex}{file_extension.lower()}"
+        unique_filename = (
+            f"{file_name.lower()}_{uuid.uuid4().hex}{file_extension.lower()}"
+        )
 
         image_path = os.path.join(upload_folder, unique_filename)
 
@@ -63,7 +66,7 @@ async def upolad_profile_picture(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

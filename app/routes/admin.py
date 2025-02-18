@@ -53,13 +53,13 @@ async def create_user(user_credential: UserRequestModel, db=Depends(get_db)):
         await user_collection.insert_one(user_dict)
 
         return {"message": "User account created successfully."}
-    
+
     except HTTPException as http_error:
         raise HTTPException(
             status_code=http_error.status_code,
             detail=http_error.detail,
         )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
