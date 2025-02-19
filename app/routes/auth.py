@@ -1,5 +1,4 @@
 from typing import Optional
-from app.utils.is_valid_object_id import PyObjectId
 
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from datetime import datetime
@@ -21,7 +20,7 @@ from app.utils.paginator import paginate_query
 from app.database.db import get_db
 from pymongo.collection import Collection
 from app.utils.is_admin import is_logged_in_and_admin
-
+from app.utils.is_valid_object_id import validate_valid_object_id
 
 auth_routes = APIRouter(prefix="/api/v1/auth", tags=["user"])
 
@@ -189,12 +188,12 @@ async def retrive_active_users(
 
 @auth_routes.get("/users/{user_id}", response_model=UserResponseModel)
 async def get_user_detail(
-    user_id: PyObjectId,
+    user_id: str,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
     try:
-
+        await validate_valid_object_id(user_id)
         user_collection: Collection = db["users"]
 
         logged_in_user = await user_collection.find_one({"_id": ObjectId(current_user)})
@@ -235,15 +234,25 @@ async def get_user_detail(
 )
 async def get_edit_user_detail(
     data: UserEditReqModel,
-    user_id: PyObjectId,
+    user_id: str,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
 
     try:
-
+        await validate_valid_object_id(user_id)
         user_collection: Collection = db["users"]
         dict_data = data.model_dump()
+
+        user_to_update = await user_collection.find_one(
+            {"_id": ObjectId(user_id)}, {"password": 0}
+        )
+
+        if not user_to_update:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User Doesn't Exists",
+            )
 
         data_to_update = dict()
         if "email" in dict_data and dict_data["email"] is not None:
@@ -309,12 +318,13 @@ async def get_edit_user_detail(
 
 @auth_routes.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def soft_delete_user(
-    user_id: PyObjectId,
+    user_id: str,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
     reason: str = Query(),
 ):
     try:
+        await validate_valid_object_id(user_id)
 
         user_collection: Collection = db["users"]
         trash_collection: Collection = db["trash"]

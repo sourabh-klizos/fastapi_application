@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, HTTPException, Depends, Query
-from app.utils.is_valid_object_id import PyObjectId
+from app.utils.is_valid_object_id import validate_valid_object_id
 
 from app.utils.get_current_logged_in_user import get_current_user_id
 
@@ -131,11 +131,13 @@ async def bulk_delete(
 
 @trash_routes.put("/restore/{user_id}", status_code=status.HTTP_200_OK)
 async def restore_user(
-    user_id: PyObjectId,
+    user_id: str,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
     try:
+
+        await validate_valid_object_id(user_id)
 
         user_collection: Collection = db["users"]
         trash_collection: Collection = db["trash"]
@@ -199,11 +201,13 @@ async def restore_user(
     "/permanent/delete/{user_id}", status_code=status.HTTP_204_NO_CONTENT
 )
 async def permanent_delete(
-    user_id: PyObjectId,
+    user_id: str,
     current_user=Depends(get_current_user_id),
     db=Depends(get_db),
 ):
+
     try:
+        await validate_valid_object_id(user_id)
 
         user_collection: Collection = db["users"]
         trash_collection: Collection = db["trash"]

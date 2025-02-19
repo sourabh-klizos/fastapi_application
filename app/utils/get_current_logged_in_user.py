@@ -25,7 +25,7 @@ async def get_current_user_id(token: str = Security(oauth2_scheme)):
     if "user_id" not in user_details:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Something went wrong ",
+            detail="Not a valid token",
         )
 
     return user_details["user_id"]
