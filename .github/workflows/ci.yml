@@ -35,15 +35,6 @@ jobs:
       with:
         redis-version: latest 
 
-    # - name: Wait for Redis to be ready
-    #   run: |
-    #     until redis-cli -h localhost ping | grep -q PONG; do
-    #     echo "Waiting for Redis..."
-    #     sleep 1
-    #     done
-    #     echo "Redis is ready!"
-
-
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
