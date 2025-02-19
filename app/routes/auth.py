@@ -26,7 +26,10 @@ from app.utils.is_admin import is_logged_in_and_admin
 auth_routes = APIRouter(prefix="/api/v1/auth", tags=["user"])
 
 
-@auth_routes.post("/signup", status_code=status.HTTP_201_CREATED)
+@auth_routes.post(
+    "/signup",
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_user(
     request: Request, user_credential: UserRequestModel, db=Depends(get_db)
 ):

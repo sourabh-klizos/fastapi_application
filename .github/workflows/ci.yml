@@ -29,6 +29,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.7.0
+      with:
+        redis-version: latest 
+
+    - name: Wait for Redis to be ready
+      run: |
+        until redis-cli -h localhost ping | grep -q PONG; do
+        echo "Waiting for Redis..."
+        sleep 1
+        done
+        echo "Redis is ready!"
+
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -49,6 +64,8 @@ jobs:
         echo "TEST_DB_NAME=${{ secrets.TEST_DB_NAME }}" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GITHUB_ENV
+        echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
 
     - name: Run flake8
       run: |

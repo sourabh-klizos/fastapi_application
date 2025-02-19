@@ -10,17 +10,75 @@ Before you start, make sure you have the following installed:
 - Python 3.7 or higher
 - MongoDB (either locally or through a cloud provider like MongoDB Atlas)
 - pip (Python package installer)
+- Redis (installed on your machine or via Docker)
+
 
 ## Step 1: Clone the Repository
 
-Start by cloning the Git repository to your local machine.
 
+
+
+## Setup Instructions
+### Option 1: Running Redis on Your Local Machine
+
+If you have Redis installed on your local machine, you can skip the Docker setup and run Redis locally.
+
+#### 1. Install Redis
+
+- **For macOS** (using Homebrew):
+  ```bash
+  brew install redis
+
+  Once installed, start Redis using the following command:
+  redis-server
+
+  Verify Redis is Running
+  
+  redis-cli
+
+  Once inside the CLI, test Redis by typing - > ping
+  Redis should respond with -> PONG
+
+  ```
+
+- **ubuntu** (using Homebrew):
+  ```bash
+    sudo apt-get install redis-server
+
+    Once installed, start Redis using the following command:
+    redis-server
+
+    Verify Redis is Running
+    
+    redis-cli
+
+    Once inside the CLI, test Redis by typing - > ping
+    Redis should respond with -> PONG
+
+  ```
+
+
+
+
+
+- **Docker** (using Homebrew):
+```bash
+If you're using Docker Compose for this project, you do not need to manually start Redis. The Redis service is automatically managed by Docker Compose.
+
+However, if you want to run Redis manually in Docker outside of Docker Compose, follow the instructions below.
+
+docker pull redis:latest
+docker run --name redis -p 6379:6379 -d redis:latest
+
+```
+
+Start by cloning the Git repository to your local machine.
 ```bash
 git clone https://github.com/sourabh-klizos/fastapi_application.git
 
 
 create a .env file in root dir same as app level  copy content from .env_example file
-=======
+
 cd fastapi_application
 
 

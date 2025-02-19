@@ -44,7 +44,6 @@ async def test_upload_profile_image_fail(
     assert response.status_code == 400
 
 
-@pytest.mark.order(-1)
 @pytest.mark.asyncio
 async def test_upload_profile_to_s3_image_success(
     client: AsyncClient, get_current_user_token: Dict[str, str], get_test_db

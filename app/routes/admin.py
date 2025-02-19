@@ -9,6 +9,7 @@ from datetime import datetime
 from app.utils.hashing import get_hashed_password
 from pymongo.collection import Collection
 
+
 admin_routes = APIRouter(prefix="/api/v1/auth/admin", tags=["admin"])
 
 
