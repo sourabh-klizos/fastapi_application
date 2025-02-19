@@ -41,7 +41,7 @@ If you have Redis installed on your local machine, you can skip the Docker setup
 
   ```
 
-- **ubuntu** (using Homebrew):
+- **ubuntu**:
   ```bash
     sudo apt-get install redis-server
 
@@ -61,7 +61,7 @@ If you have Redis installed on your local machine, you can skip the Docker setup
 
 
 
-- **Docker** (using Homebrew):
+- **Docker** :
 ```bash
 If you're using Docker Compose for this project, you do not need to manually start Redis. The Redis service is automatically managed by Docker Compose.
 
