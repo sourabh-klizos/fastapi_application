@@ -4,7 +4,6 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import redis.asyncio as redis
 import os
-
 from app.routes import (
     auth,
     get_access_by_refresh_token as obtain_access_router,
@@ -13,7 +12,6 @@ from app.routes import (
     profile,
     upload_profile_s3,
 )
-
 
 from dotenv import load_dotenv
 
