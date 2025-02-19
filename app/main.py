@@ -46,7 +46,7 @@ app.include_router(upload_profile_s3.profile_upolad_s3)
 
 @app.get(
     "/health",
-    dependencies=[Depends(RateLimiter(times=2, seconds=10))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=10))],
     status_code=status.HTTP_200_OK,
 )
 def helth_check(request: Request) -> dict:

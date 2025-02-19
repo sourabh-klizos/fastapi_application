@@ -107,8 +107,6 @@ Clone the Git repository to your local machine:
 ```bash
 git clone https://github.com/sourabh-klizos/fastapi_application.git
 
-
-=======
 cd fastapi_application
 
 Run this command
