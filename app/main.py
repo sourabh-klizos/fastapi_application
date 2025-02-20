@@ -16,7 +16,7 @@ from app.routes import (
 from app.utils.delete_users_from_trash import scheduler
 
 
-from prometheus_client import generate_latest , REGISTRY
+from prometheus_client import generate_latest, REGISTRY
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -39,8 +39,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
 
 
 app.include_router(auth.auth_routes)
