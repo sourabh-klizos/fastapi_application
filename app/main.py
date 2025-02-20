@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, Request, Depends, Response
+from fastapi import FastAPI, status, Request, Depends
 from contextlib import asynccontextmanager
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
@@ -54,4 +54,3 @@ app.include_router(upload_profile_s3.profile_upolad_s3)
 )
 def helth_check(request: Request) -> dict:
     return {"status": "I am healthy"}
-
