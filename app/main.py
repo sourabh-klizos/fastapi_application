@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, Request, Depends
+from fastapi import FastAPI, status, Request, Depends, Response
 from contextlib import asynccontextmanager
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
@@ -13,8 +13,10 @@ from app.routes import (
     profile,
     upload_profile_s3,
 )
+from app.utils.delete_users_from_trash import scheduler
 
 
+from prometheus_client import generate_latest , REGISTRY
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -30,10 +32,15 @@ async def lifespan(app: FastAPI):
     )
     await FastAPILimiter.init(redis_connection)
 
+    scheduler.start()
+
     yield
+    scheduler.shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
+
+
 
 
 app.include_router(auth.auth_routes)
@@ -51,3 +58,8 @@ app.include_router(upload_profile_s3.profile_upolad_s3)
 )
 def helth_check(request: Request) -> dict:
     return {"status": "I am healthy"}
+
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(REGISTRY), media_type="text/plain")
