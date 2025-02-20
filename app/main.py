@@ -13,6 +13,7 @@ from app.routes import (
     upload_profile_s3,
 )
 
+from app.utils.delete_users_from_trash import scheduler
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -27,8 +28,9 @@ async def lifespan(app: FastAPI):
         f"redis://{REDIS_HOST}:{REDIS_PORT}", encoding="utf-8", decode_responses=True
     )
     await FastAPILimiter.init(redis_connection)
-
+    scheduler.start()
     yield
+    scheduler.shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
