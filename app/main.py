@@ -15,8 +15,6 @@ from app.routes import (
 )
 from app.utils.delete_users_from_trash import scheduler
 
-
-from prometheus_client import generate_latest, REGISTRY
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -57,7 +55,3 @@ app.include_router(upload_profile_s3.profile_upolad_s3)
 def helth_check(request: Request) -> dict:
     return {"status": "I am healthy"}
 
-
-@app.get("/metrics")
-async def metrics():
-    return Response(generate_latest(REGISTRY), media_type="text/plain")
